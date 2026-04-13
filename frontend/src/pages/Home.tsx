@@ -102,7 +102,7 @@ export default function Home() {
 
                             <div className="flex flex-col sm:flex-row items-center gap-4">
                                 <Link
-                                    to={language === 'en' ? '/en/projects' : '/projects'}
+                                    to={language === 'en' ? '/en/projects' : '/proyectos'}
                                     className="px-8 py-3 bg-cyan-500 hover:bg-cyan-600 text-black font-bold rounded-lg transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)]"
                                 >
                                     {t('heroButton')}
@@ -274,7 +274,7 @@ export default function Home() {
                             <div>
                                 <h2 className="text-3xl font-bold text-white mb-2">{t('featuredProjects')}</h2>
                             </div>
-                            <Link to={language === 'en' ? '/en/projects' : '/projects'} className="text-primary hover:text-accent transition-colors flex items-center gap-1 font-medium">
+                            <Link to={language === 'en' ? '/en/projects' : '/proyectos'} className="text-primary hover:text-accent transition-colors flex items-center gap-1 font-medium">
                                 {t('viewAllProjects')} <ArrowRight className="w-4 h-4" />
                             </Link>
                         </motion.div>
