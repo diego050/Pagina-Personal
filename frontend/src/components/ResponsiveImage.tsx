@@ -43,9 +43,7 @@ export default function ResponsiveImage({ src, alt, width, height, className = '
     const isBackendUpload = normalizedSrc.startsWith('/static/uploads');
     const resolveUrl = (path: string) => isBackendUpload ? getBackendUrl(path) : path;
 
-    const lastDotIndex = normalizedSrc.lastIndexOf('.');
-    const basePath = lastDotIndex !== -1 ? normalizedSrc.substring(0, lastDotIndex) : normalizedSrc;
-    const ext = lastDotIndex !== -1 ? normalizedSrc.substring(lastDotIndex).toLowerCase() : '';
+
 
     // Return standard img for all images to avoid 404s on non-existent responsive versions
     return (
