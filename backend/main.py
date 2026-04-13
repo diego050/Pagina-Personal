@@ -563,32 +563,72 @@ def get_robots():
     content = f"User-agent: *\nAllow: /\nSitemap: {frontend_url}/sitemap.xml"
     return Response(content=content, media_type="text/plain")
 
-@app.get("/sitemap.xml", response_class=Response)
+@app.get("/sitemap.xml")
 def get_sitemap(session: Session = Depends(get_session)):
-    import datetime
-    base_url = os.getenv("FRONTEND_URL", "https://diegovelazquez.dev").rstrip("/")
+    SITE_URL = "https://dbtech.cloud"
     
-    # Static pages
-    pages = ["", "/about", "/projects", "/blog"]
+    # 1. Translation Map for static routes
+    # Map: ES_path -> EN_path
+    static_map = {
+        "/": "/en",
+        "/sobre-mi": "/en/about",
+        "/proyectos": "/en/projects",
+        "/blog": "/en/blog"
+    }
     
-    # Fetch dynamic content slugs
-    articles = session.exec(select(Article).where(Article.is_published == True)).all()
+    # Inverse map for EN -> ES
+    inverse_static_map = {v: k for k, v in static_map.items()}
+    
+    # List of all paths for which we want a sitemap entry
+    all_paths = list(static_map.keys()) + list(static_map.values())
+    
+    # 2. Dynamic Projects
     projects = session.exec(select(Project)).all()
+    for p in projects:
+        if p.slug:
+            all_paths.append(f"/project/{p.slug}")
+            all_paths.append(f"/en/project/{p.slug}")
+            
+    # 3. Dynamic Articles
+    articles = session.exec(select(Article).where(Article.is_published == True)).all()
+    for a in articles:
+        if a.slug:
+            all_paths.append(f"/blog/{a.slug}")
+            all_paths.append(f"/en/blog/{a.slug}")
+
+    # Generate XML
+    xml_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">'
+    ]
     
-    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-    
-    # Add static pages
-    for page in pages:
-        xml += f"  <url>\n    <loc>{base_url}{page}</loc>\n    <changefreq>weekly</changefreq>\n  </url>\n"
-    
-    # Add articles
-    for art in articles:
-        xml += f"  <url>\n    <loc>{base_url}/blog/{art.slug}</loc>\n    <changefreq>monthly</changefreq>\n  </url>\n"
+    for path in all_paths:
+        full_url = f"{SITE_URL}{path}"
         
-    # Add projects
-    for proj in projects:
-        xml += f"  <url>\n    <loc>{base_url}/projects/{proj.slug}</loc>\n    <changefreq>monthly</changefreq>\n  </url>\n"
+        # Logic to find the alternate URL
+        alternate_url = None
+        current_lang = "en" if path.startswith("/en") else "es"
         
-    xml += "</urlset>"
-    return Response(content=xml, media_type="application/xml")
+        if path in static_map: # It's a Spanish static route
+            alternate_url = f"{SITE_URL}{static_map[path]}"
+        elif path in inverse_static_map: # It's an English static route
+            alternate_url = f"{SITE_URL}{inverse_static_map[path]}"
+        elif path.startswith("/en/"): # It's an English dynamic route
+            alt_path = path.replace("/en/", "/")
+            alternate_url = f"{SITE_URL}{alt_path}"
+        else: # It's a Spanish dynamic route
+            alt_path = f"/en{path}"
+            alternate_url = f"{SITE_URL}{alt_path}"
+            
+        xml_lines.append(f'    <url>')
+        xml_lines.append(f'        <loc>{full_url}</loc>')
+        xml_lines.append(f'        <changefreq>weekly</changefreq>')
+        xml_lines.append(f'        <priority>{"1.0" if path == "/" or path == "/en" else "0.8"}</priority>')
+        if alternate_url:
+            xml_lines.append(f'        <xhtml:link rel="alternate" hreflang="{"en" if current_lang == "es" else "es"}" href="{alternate_url}"/>')
+            xml_lines.append(f'        <xhtml:link rel="alternate" hreflang="{current_lang}" href="{full_url}"/>')
+        xml_lines.append(f'    </url>')
+        
+    xml_lines.append('</urlset>')
+    
+    return Response(content="\n".join(xml_lines), media_type="application/xml")
