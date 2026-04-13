@@ -34,29 +34,33 @@ export default function ResponsiveImage({ src, alt, width, height, className = '
     }
 
     // Ensure local paths from DB (like 'projects/img.webp') are correctly prefixed if they don't have it
-    let finalSrc = src;
-    if (!finalSrc.startsWith('/static/uploads') && !finalSrc.startsWith('http') && !finalSrc.startsWith('/')) {
-        finalSrc = `/static/uploads/${finalSrc}`;
+    let normalizedSrc = src;
+    if (!normalizedSrc.startsWith('/static/uploads') && !normalizedSrc.startsWith('http') && !normalizedSrc.startsWith('/')) {
+        normalizedSrc = `/static/uploads/${normalizedSrc}`;
     }
 
-    const lastDotIndex = finalSrc.lastIndexOf('.');
-    const basePath = lastDotIndex !== -1 ? finalSrc.substring(0, lastDotIndex) : finalSrc;
-    const ext = lastDotIndex !== -1 ? finalSrc.substring(lastDotIndex).toLowerCase() : '';
+    // Determine if we should use the backend URL (only for uploads)
+    const isBackendUpload = normalizedSrc.startsWith('/static/uploads');
+    const resolveUrl = (path: string) => isBackendUpload ? getBackendUrl(path) : path;
+
+    const lastDotIndex = normalizedSrc.lastIndexOf('.');
+    const basePath = lastDotIndex !== -1 ? normalizedSrc.substring(0, lastDotIndex) : normalizedSrc;
+    const ext = lastDotIndex !== -1 ? normalizedSrc.substring(lastDotIndex).toLowerCase() : '';
 
     // If it's webp, we provide srcSet
     if (ext === '.webp') {
         const srcSet = `
-            ${getBackendUrl(`${basePath}-sm.webp`)} 400w,
-            ${getBackendUrl(`${basePath}-md.webp`)} 800w,
-            ${getBackendUrl(`${basePath}-lg.webp`)} 1200w,
-            ${getBackendUrl(finalSrc)} 1600w
+            ${resolveUrl(`${basePath}-sm.webp`)} 400w,
+            ${resolveUrl(`${basePath}-md.webp`)} 800w,
+            ${resolveUrl(`${basePath}-lg.webp`)} 1200w,
+            ${resolveUrl(normalizedSrc)} 1600w
         `;
         
         return (
             <picture>
                 <source srcSet={srcSet} type="image/webp" />
                 <img 
-                    src={getBackendUrl(finalSrc)} 
+                    src={resolveUrl(normalizedSrc)} 
                     alt={alt} 
                     loading={lazy ? "lazy" : "eager"} 
                     width={width} 
@@ -70,7 +74,7 @@ export default function ResponsiveImage({ src, alt, width, height, className = '
 
     return (
         <img 
-            src={getBackendUrl(src)} 
+            src={resolveUrl(normalizedSrc)} 
             alt={alt} 
             loading={lazy ? "lazy" : "eager"} 
             width={width} 
