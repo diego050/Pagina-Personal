@@ -46,10 +46,10 @@ export default function ResponsiveImage({ src, alt, width, height, className = '
     // If it's webp, we provide srcSet
     if (ext === '.webp') {
         const srcSet = `
-            ${basePath}-sm.webp 400w,
-            ${basePath}-md.webp 800w,
-            ${basePath}-lg.webp 1200w,
-            ${finalSrc} 1600w
+            ${getBackendUrl(`${basePath}-sm.webp`)} 400w,
+            ${getBackendUrl(`${basePath}-md.webp`)} 800w,
+            ${getBackendUrl(`${basePath}-lg.webp`)} 1200w,
+            ${getBackendUrl(finalSrc)} 1600w
         `;
         
         return (
