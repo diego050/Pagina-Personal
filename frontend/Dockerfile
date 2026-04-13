@@ -12,10 +12,12 @@ RUN apk add --no-cache python3 make g++ && \
 # Copy source and build
 COPY . .
 
-# We need the VITE_BACKEND_URL for the build (Production URL)
-# The user will change this in the docker-compose or .env
-ARG VITE_BACKEND_URL=https://diegovelazquez.dev/api
+# We need these variables for the build (Production URLs)
+ARG VITE_BACKEND_URL
+ARG VITE_SITE_URL
+
 ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
+ENV VITE_SITE_URL=$VITE_SITE_URL
 
 RUN npm run build
 
