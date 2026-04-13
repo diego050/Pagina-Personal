@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const API_URL = 'http://localhost:8000';
-const SITE_URL = 'https://diegovelazquez.dev';
+const SITE_URL = 'https://dbtech.cloud';
 
 // Static routes
 const staticRoutes = [
