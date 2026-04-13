@@ -6,7 +6,6 @@ import rehypeRaw from 'rehype-raw';
 import { ChevronDown, ChevronRight, PenTool, Bold, Italic, Heading1, Heading2, Heading3, List, ListOrdered, Quote, Link as LinkIcon, Image as ImageIcon, Trash2, AlignLeft, AlignCenter, AlignJustify, Upload, Save, X, Layout, Plus, LogOut } from 'lucide-react';
 import api, { getContent, updateContent, getMedia, uploadMedia, createMediaFolder, renameMedia, deleteMedia, updateMediaMeta } from '../api';
 import SiteContentEditor from '../components/admin/SiteContentEditor';
-import { CONFIG } from '../config';
 
 interface SiteContent {
     key: string;
