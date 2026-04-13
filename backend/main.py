@@ -559,7 +559,7 @@ async def subscribe_newsletter(req: NewsletterRequest):
 # NEW: SEO Endpoints
 @app.get("/robots.txt", response_class=Response)
 def get_robots():
-    frontend_url = os.getenv("FRONTEND_URL", "https://diegovelazquez.dev")
+    frontend_url = os.getenv("FRONTEND_URL", "https://dbtech.cloud")
     content = f"User-agent: *\nAllow: /\nSitemap: {frontend_url}/sitemap.xml"
     return Response(content=content, media_type="text/plain")
 
