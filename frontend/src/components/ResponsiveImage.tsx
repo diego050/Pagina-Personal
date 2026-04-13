@@ -45,7 +45,35 @@ export default function ResponsiveImage({ src, alt, width, height, className = '
 
 
 
-    // Return standard img for all images to avoid 404s on non-existent responsive versions
+    const lastDotIndex = normalizedSrc.lastIndexOf('.');
+    const basePath = lastDotIndex !== -1 ? normalizedSrc.substring(0, lastDotIndex) : normalizedSrc;
+    const ext = lastDotIndex !== -1 ? normalizedSrc.substring(lastDotIndex).toLowerCase() : '';
+
+    // If it's webp, we provide srcSet now that we ensured variants exist
+    if (ext === '.webp') {
+        const srcSet = `
+            ${resolveUrl(`${basePath}-sm.webp`)} 400w,
+            ${resolveUrl(`${basePath}-md.webp`)} 800w,
+            ${resolveUrl(`${basePath}-lg.webp`)} 1200w,
+            ${resolveUrl(normalizedSrc)} 1600w
+        `;
+        
+        return (
+            <picture>
+                <source srcSet={srcSet} type="image/webp" />
+                <img 
+                    src={resolveUrl(normalizedSrc)} 
+                    alt={alt} 
+                    loading={lazy ? "lazy" : "eager"} 
+                    width={width} 
+                    height={height} 
+                    className={className} 
+                    {...props} 
+                />
+            </picture>
+        );
+    }
+
     return (
         <img 
             src={resolveUrl(normalizedSrc)} 
