@@ -25,6 +25,9 @@ FROM nginx:alpine
 # Copy built files from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
+# Copy custom nginx configuration for SPA routing
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 # Copy a custom nginx config if we wanted one for the frontend service specifically
 # But we'll use a main gateway instead.
 # For now, just expose 80
