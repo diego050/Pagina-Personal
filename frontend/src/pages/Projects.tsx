@@ -41,10 +41,10 @@ export default function Projects() {
     });
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="relative">
             <SEO
-                title={t('projectsTitle')}
-                description={t('projectsSubtitle')}
+                title={t('seoProjectsTitle')}
+                description={t('seoProjectsDesc')}
             />
             <motion.div
                 initial={{ opacity: 0, y: 20 }}

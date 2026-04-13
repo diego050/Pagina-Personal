@@ -68,8 +68,8 @@ export default function Home() {
     return (
         <div className="relative">
             <SEO
-                title="Diego Bazan"
-                description={t('heroDescription')}
+                title={t('seoHomeTitle')}
+                description={t('seoHomeDesc')}
             />
             {/* Hero Section */}
             <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden py-20">

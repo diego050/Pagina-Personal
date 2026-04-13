@@ -41,14 +41,14 @@ export default function SEO({ title, description, image, imageAlt, imageWidth, i
         "inLanguage": language === 'es' ? "es" : "en",
         "author": {
             "@type": "Person",
-            "name": "Diego Velazquez"
+            "name": "Diego Bazán"
         },
         ...(image && { "image": absoluteImage })
     };
 
     return (
         <Helmet>
-            <title>{title} | Portafolio</title>
+            <title>{title} — DBtech</title>
             <meta name="description" content={description} />
 
             {/* Open Graph / Facebook */}
@@ -63,7 +63,7 @@ export default function SEO({ title, description, image, imageAlt, imageWidth, i
             {imageHeight && <meta property="og:image:height" content={imageHeight.toString()} />}
             {imageAlt && <meta property="og:image:alt" content={imageAlt} />}
             <meta property="og:locale" content={language === 'es' ? 'es_ES' : 'en_US'} />
-            <meta property="og:site_name" content="Diego Velazquez Portfolio" />
+            <meta property="og:site_name" content="DBtech" />
 
             {/* Twitter */}
             <meta name="twitter:card" content="summary_large_image" />

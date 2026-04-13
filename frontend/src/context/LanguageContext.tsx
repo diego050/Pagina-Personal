@@ -24,6 +24,15 @@ export const translations = {
         changeLanguage: 'Cambiar idioma',
         // Home
         heroTitle: 'Transformando Ideas en Experiencias Digitales',
+        // Localized SEO
+        seoHomeTitle: 'Diego Bazán | Estrategia Digital & Desarrollo Full-Stack',
+        seoHomeDesc: 'Potencia tu negocio con soluciones digitales estratégicas. Especialista en desarrollo web, marketing digital y modelos de negocio escalables.',
+        seoAboutTitle: 'Sobre Mí',
+        seoAboutDesc: 'Conoce más sobre mi trayectoria híbrida entre los negocios digitales y el desarrollo de software.',
+        seoProjectsTitle: 'Portafolio de Proyectos',
+        seoProjectsDesc: 'Explora mis proyectos más recientes en desarrollo web, automatización y consultoría digital.',
+        seoBlogTitle: 'Insights & Artículos',
+        seoBlogDesc: 'Reflexiones y guías sobre tecnología, emprendimiento y marketing digital.',
         heroSubtitle: 'NEGOCIOS DIGITALES & DESARROLLO FULL-STACK',
         heroDescription: 'Más que código, ofrezco soluciones estratégicas. Combino mi formación de negocios con el desarrollo de software para crear productos digitales escalables y de alto valor. Combino la innovación tecnológica con el marketing digital para construir productos que maximizan la conversión y fidelizan al usuario.',
         heroRole: "Estudiante de Administración y Negocios Digitales <span class='text-primary'>| Tercio Superior en UTEC</span>",
@@ -124,6 +133,15 @@ export const translations = {
         changeLanguage: 'Change language',
         // Home
         heroTitle: 'Transforming Ideas into Digital Experiences',
+        // Localized SEO
+        seoHomeTitle: 'Diego Bazán | Digital Strategy & Full-Stack Development',
+        seoHomeDesc: 'Power your business with strategic digital solutions. Specialist in web development, digital marketing, and scalable business models.',
+        seoAboutTitle: 'About Me',
+        seoAboutDesc: 'Learn more about my hybrid background between digital business and software development.',
+        seoProjectsTitle: 'Project Portfolio',
+        seoProjectsDesc: 'Explore my latest projects in web development, automation, and digital consulting.',
+        seoBlogTitle: 'Insights & Articles',
+        seoBlogDesc: 'Reflections and guides on technology, entrepreneurship, and digital marketing.',
         heroSubtitle: 'DIGITAL BUSINESS & FULL-STACK ENGINEERING',
         heroDescription: 'More than just code, I deliver strategic solutions. I combine my business background with software development to build scalable, high-value digital products. I combine technological innovation with digital marketing to build products that maximize conversion and retain users.',
         heroRole: "Student of Business Administration and Digital Business <span class='text-primary'>| Top Third at UTEC</span>",
