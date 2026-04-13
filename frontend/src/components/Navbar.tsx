@@ -101,12 +101,14 @@ export default function Navbar() {
                                 href={alternateUrl}
                                 onClick={handleLanguageSwitch}
                                 className="text-zinc-400 hover:text-white p-2 cursor-pointer"
+                                aria-label={language === 'es' ? 'Cambiar a Inglés' : 'Switch to Spanish'}
                             >
                                 <span className="font-bold">{language.toUpperCase()}</span>
                             </a>
                             <button
                                 onClick={() => setIsOpen(!isOpen)}
                                 className="text-zinc-400 hover:text-white p-2"
+                                aria-label={isOpen ? t('closeMenu') || 'Cerrar menú' : t('openMenu') || 'Abrir menú'}
                             >
                                 {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                             </button>
@@ -142,6 +144,7 @@ export default function Navbar() {
                                     <button
                                         onClick={() => setIsOpen(false)}
                                         className="p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+                                        aria-label={t('closeMenu') || 'Cerrar menú'}
                                     >
                                         <X className="w-6 h-6" />
                                     </button>
@@ -165,6 +168,7 @@ export default function Navbar() {
                                             href={alternateUrl}
                                             onClick={handleLanguageSwitch}
                                             className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-colors border border-white/10 cursor-pointer"
+                                            aria-label={language === 'es' ? 'Cambiar a Inglés' : 'Switch to Spanish'}
                                         >
                                             <div className="flex items-center gap-2">
                                                 <Globe className="w-5 h-5" />

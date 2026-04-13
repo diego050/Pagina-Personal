@@ -197,6 +197,7 @@ const NewsletterSection: React.FC = () => {
                         <button 
                             onClick={() => setShowToast(false)}
                             className="p-2 hover:bg-white/5 rounded-full text-zinc-500 hover:text-white transition-colors"
+                            aria-label="Cerrar notificación"
                         >
                             <X className="w-5 h-5" />
                         </button>
