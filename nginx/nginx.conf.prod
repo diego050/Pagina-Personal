@@ -45,7 +45,13 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Media/Uploads proxy
+    # Media/Uploads proxy (Support both /static and /api/static)
+    location /api/static/ {
+        alias /app/static/;
+        expires 7d;
+        add_header Cache-Control "public, no-transform";
+    }
+
     location /static/ {
         root /app;
         expires 7d;
