@@ -14,6 +14,8 @@ import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from PIL import Image
+import bleach
+import html
 
 from database import create_db_and_tables, get_session
 from models import User, Project, Article, SiteContent, MediaNode
@@ -27,6 +29,33 @@ from schemas import (
 from auth import verify_password, create_access_token, get_current_user, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
 
 load_dotenv()
+
+# --- Security Helpers ---
+def sanitize_text(text: str, mode: str = "strict") -> str:
+    if not text or not isinstance(text, str):
+        return text
+        
+    if mode == "strict":
+        # Neutralize all HTML tags (best for public forms)
+        return html.escape(text)
+    
+    if mode == "content":
+        # Allow safe tags for Blog/Projects (CMS)
+        allowed_tags = [
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
+            'p', 'br', 'hr', 'blockquote', 'pre', 'code',
+            'ul', 'ol', 'li', 'span', 'div', 'strong', 'em', 'u', 's',
+            'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td'
+        ]
+        allowed_attrs = {
+            'a': ['href', 'title', 'target', 'rel', 'class'],
+            'img': ['src', 'alt', 'title', 'width', 'height', 'class'],
+            '*': ['class', 'id', 'style'] 
+        }
+        return bleach.clean(text, tags=allowed_tags, attributes=allowed_attrs, strip=True)
+    
+    return text
+# ------------------------
 
 app = FastAPI()
 
@@ -330,6 +359,10 @@ def backup_database(session: Session):
 
 @app.post("/articles", response_model=ArticleRead)
 def create_article(article: ArticleCreate, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
+    article.title = sanitize_text(article.title)
+    article.excerpt = sanitize_text(article.excerpt)
+    article.content = sanitize_text(article.content, mode="content")
+    
     db_article = Article.from_orm(article)
     session.add(db_article)
     session.commit()
@@ -351,6 +384,13 @@ def read_project_by_slug(slug: str, session: Session = Depends(get_session)):
 
 @app.post("/projects", response_model=ProjectRead)
 def create_project(project: ProjectCreate, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
+    project.title = sanitize_text(project.title)
+    project.description = sanitize_text(project.description)
+    project.content = sanitize_text(project.content, mode="content")
+    if project.title_en: project.title_en = sanitize_text(project.title_en)
+    if project.description_en: project.description_en = sanitize_text(project.description_en)
+    if project.content_en: project.content_en = sanitize_text(project.content_en, mode="content")
+    
     db_project = Project.from_orm(project)
     session.add(db_project)
     session.commit()
@@ -366,6 +406,10 @@ def update_article(article_id: int, article: ArticleUpdate, current_user: User =
     
     article_data = article.dict(exclude_unset=True)
     for key, value in article_data.items():
+        if key in ["title", "excerpt"] and isinstance(value, str):
+            value = sanitize_text(value)
+        elif key == "content" and isinstance(value, str):
+            value = sanitize_text(value, mode="content")
         setattr(db_article, key, value)
         
     session.add(db_article)
@@ -382,6 +426,11 @@ def update_project(project_id: int, project: ProjectUpdate, current_user: User =
     
     project_data = project.dict(exclude_unset=True)
     for key, value in project_data.items():
+        if key in ["title", "description", "title_en", "description_en"] and isinstance(value, str):
+            value = sanitize_text(value)
+        elif key in ["content", "content_en"] and isinstance(value, str):
+            value = sanitize_text(value, mode="content")
+            
         setattr(db_project, key, value)
         
     session.add(db_project)
@@ -424,7 +473,8 @@ def update_content(key: str, content_update: SiteContentUpdate, current_user: Us
     if not db_content:
         raise HTTPException(status_code=404, detail="Content key not found")
     
-    db_content.value = content_update.value
+    # Sanitize CMS content value
+    db_content.value = sanitize_text(content_update.value, mode="content")
     session.add(db_content)
     session.commit()
     session.refresh(db_content)
@@ -441,18 +491,22 @@ async def contact_form(req: ContactRequest):
     smtp_pass = os.getenv("SMTP_PASSWORD")
     recipient = os.getenv("CONTACT_RECIPIENT")
 
-    if not smtp_user or not smtp_pass or not recipient:
-        # Fallback to just logging if not configured yet
-        print(f"Contact form received (not configured): {req}")
-        return {"status": "success", "message": "Received (Simulated)"}
-
     try:
+        # Sanitize contact inputs strictly
+        clean_name = sanitize_text(req.name)
+        clean_email = sanitize_text(req.email)
+        clean_message = sanitize_text(req.message)
+
+        if not smtp_user or not smtp_pass or not recipient:
+            print(f"Contact form received (Simulated): Name: {clean_name}, Email: {clean_email}, Msg: {clean_message}")
+            return {"status": "success", "message": "Received (Simulated)"}
+
         msg = MIMEMultipart()
         msg["From"] = smtp_user
         msg["To"] = recipient
-        msg["Subject"] = f"New Contact from {req.name} - DBtech Portfolio"
+        msg["Subject"] = f"New Contact from {clean_name} - DBtech Portfolio"
         
-        body = f"Name: {req.name}\nEmail: {req.email}\n\nMessage:\n{req.message}"
+        body = f"Name: {clean_name}\nEmail: {clean_email}\n\nMessage:\n{clean_message}"
         msg.attach(MIMEText(body, "plain"))
 
         context = ssl.create_default_context()
@@ -474,17 +528,21 @@ async def subscribe_newsletter(req: NewsletterRequest):
     smtp_pass = os.getenv("SMTP_PASSWORD")
     recipient = os.getenv("CONTACT_RECIPIENT")
 
-    if not smtp_user or not smtp_pass or not recipient:
-        print(f"Newsletter subscription received (not configured): {req}")
-        return {"status": "success", "message": "Received (Simulated)"}
-
     try:
+        # Sanitize newsletter inputs strictly
+        clean_name = sanitize_text(req.name)
+        clean_email = sanitize_text(req.email)
+
+        if not smtp_user or not smtp_pass or not recipient:
+            print(f"Newsletter subscription (Simulated): Name: {clean_name}, Email: {clean_email}")
+            return {"status": "success", "message": "Received (Simulated)"}
+
         msg = MIMEMultipart()
         msg["From"] = smtp_user
         msg["To"] = recipient
-        msg["Subject"] = f"New Newsletter Subscription: {req.name}"
+        msg["Subject"] = f"New Newsletter Subscription: {clean_name}"
         
-        body = f"A new person has subscribed to your newsletter!\n\nName: {req.name}\nEmail: {req.email}"
+        body = f"A new person has subscribed to your newsletter!\n\nName: {clean_name}\nEmail: {clean_email}"
         msg.attach(MIMEText(body, "plain"))
 
         context = ssl.create_default_context()
@@ -496,9 +554,6 @@ async def subscribe_newsletter(req: NewsletterRequest):
         return {"status": "success"}
     except Exception as e:
         print(f"SMTP Error during subscription: {e}")
-        # We return success to the user even if email fails to owner, 
-        # but in this case the user wants the email, so we might want to log it.
-        # For now, let's keep it similar to contact form.
         raise HTTPException(status_code=500, detail="Failed to process subscription")
 
 # NEW: SEO Endpoints
