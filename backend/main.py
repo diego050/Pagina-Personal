@@ -30,6 +30,10 @@ load_dotenv()
 
 app = FastAPI()
 
+@app.get("/")
+def read_root():
+    return {"status": "success", "message": "DBtech Backend is running on Hostinger VPS"}
+
 # Mount static directory for uploaded images
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
