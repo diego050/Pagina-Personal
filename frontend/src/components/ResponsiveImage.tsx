@@ -8,9 +8,19 @@ interface ResponsiveImageProps extends React.ImgHTMLAttributes<HTMLImageElement>
     height?: number | string;
     className?: string;
     lazy?: boolean;
+    sizes?: string;
 }
 
-export default function ResponsiveImage({ src, alt, width, height, className = '', lazy = true, ...props }: ResponsiveImageProps) {
+export default function ResponsiveImage({ 
+    src, 
+    alt, 
+    width, 
+    height, 
+    className = '', 
+    lazy = true, 
+    sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw", 
+    ...props 
+}: ResponsiveImageProps) {
     // If the image is external or not local, we just render a standard img (we can't generate srcSets for external urls if we don't control them)
     // Assume local means relative path or starting with our backend url
     // Normalize src for local checks
@@ -28,6 +38,7 @@ export default function ResponsiveImage({ src, alt, width, height, className = '
                 width={width} 
                 height={height} 
                 className={className} 
+                sizes={sizes}
                 {...props} 
             />
         );
@@ -60,7 +71,7 @@ export default function ResponsiveImage({ src, alt, width, height, className = '
         
         return (
             <picture>
-                <source srcSet={srcSet} type="image/webp" />
+                <source srcSet={srcSet} sizes={sizes} type="image/webp" />
                 <img 
                     src={resolveUrl(normalizedSrc)} 
                     alt={alt} 
@@ -68,6 +79,7 @@ export default function ResponsiveImage({ src, alt, width, height, className = '
                     width={width} 
                     height={height} 
                     className={className} 
+                    sizes={sizes}
                     {...props} 
                 />
             </picture>
@@ -82,16 +94,6 @@ export default function ResponsiveImage({ src, alt, width, height, className = '
             width={width} 
             height={height} 
             className={className} 
-            {...props} 
-        />
-    );
-
-    return (
-        <img 
-            src={resolveUrl(normalizedSrc)} 
-            alt={alt} 
-            loading={lazy ? "lazy" : "eager"} 
-            width={width} 
             height={height} 
             className={className} 
             {...props} 
