@@ -432,7 +432,7 @@ def update_content(key: str, content_update: SiteContentUpdate, current_user: Us
     return db_content
 
 # NEW: Contact Form Endpoint
-@app.post("/api/contact")
+@app.post("/contact")
 async def contact_form(req: ContactRequest):
     # Retrieve env settings
     smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
@@ -466,7 +466,7 @@ async def contact_form(req: ContactRequest):
         print(f"SMTP Error: {e}")
         raise HTTPException(status_code=500, detail="Failed to send email")
 
-@app.post("/api/subscribe")
+@app.post("/subscribe")
 async def subscribe_newsletter(req: NewsletterRequest):
     smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
     smtp_port = int(os.getenv("SMTP_PORT", "587"))

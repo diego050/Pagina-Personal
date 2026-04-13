@@ -68,7 +68,7 @@ export const uploadMedia = async (file: File, path: string = "") => {
 };
 
 export const subscribe = async (name: string, email: string) => {
-    return api.post('/api/subscribe', { name, email });
+    return api.post('/subscribe', { name, email });
 };
 
 export default api;
