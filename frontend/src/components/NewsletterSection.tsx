@@ -46,7 +46,7 @@ const NewsletterSection: React.FC = () => {
     };
 
     return (
-        <section className="py-32 px-4 relative overflow-hidden bg-background">
+        <section className="py-12 md:py-32 px-4 relative overflow-hidden bg-background">
             {/* Background Image Layer */}
             <div 
                 className="absolute inset-0 z-0 pointer-events-none"

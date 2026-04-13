@@ -72,7 +72,7 @@ export default function Home() {
                 description={t('seoHomeDesc')}
             />
             {/* Hero Section */}
-            <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden py-12 md:py-20">
+            <section className="relative min-h-[70vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden py-12 md:py-20">
                 <div className="absolute inset-0 bg-background" />
 
                 <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -262,7 +262,7 @@ export default function Home() {
 
             {/* Featured Projects Section */}
             {projects.length > 0 && (
-                <section className="py-20 px-4 bg-surface/30">
+                <section className="py-12 md:py-20 px-4 bg-surface/30">
                     <div className="max-w-7xl mx-auto">
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -348,7 +348,7 @@ export default function Home() {
             {/* Latest Articles Section */}
             {
                 articles.length > 0 && (
-                    <section className="py-20 px-4">
+                    <section className="py-12 md:py-20 px-4">
                         <div className="max-w-7xl mx-auto">
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
@@ -454,7 +454,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8 }}
-                className="py-24 px-4 text-center"
+                className="py-12 md:py-24 px-4 text-center"
             >
                 <div className="max-w-4xl mx-auto">
                     <span className="block text-primary font-bold tracking-wider uppercase text-sm mb-4">{t('haveProject')}</span>
