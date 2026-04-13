@@ -1,4 +1,5 @@
 import React from 'react';
+import { getBackendUrl } from '../config';
 
 interface ResponsiveImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
     src: string;
@@ -14,7 +15,8 @@ export default function ResponsiveImage({ src, alt, width, height, className = '
     // Assume local means relative path or starting with our backend url
     // Normalize src for local checks
     const isLocal = src.startsWith('/static/uploads') || 
-                    src.startsWith('/') && !src.startsWith('//') || // Relative root paths
+                    src.startsWith('static/uploads') ||
+                    src.startsWith('/') && !src.startsWith('//') || 
                     src.includes('localhost:8000/static/uploads');
     
     if (!isLocal || src.includes('://') && !src.includes('localhost:8000')) {
@@ -54,7 +56,7 @@ export default function ResponsiveImage({ src, alt, width, height, className = '
             <picture>
                 <source srcSet={srcSet} type="image/webp" />
                 <img 
-                    src={finalSrc} 
+                    src={getBackendUrl(finalSrc)} 
                     alt={alt} 
                     loading={lazy ? "lazy" : "eager"} 
                     width={width} 
@@ -68,7 +70,7 @@ export default function ResponsiveImage({ src, alt, width, height, className = '
 
     return (
         <img 
-            src={src} 
+            src={getBackendUrl(src)} 
             alt={alt} 
             loading={lazy ? "lazy" : "eager"} 
             width={width} 
