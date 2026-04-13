@@ -1,0 +1,19 @@
+name: Deploy to Hostinger VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Trigger Hostinger Project Update
+        run: |
+          curl -X POST "https://api.hostinger.com/v1/vps/virtual-machines/${{ secrets.HOSTINGER_VM_ID }}/docker/projects/pagina-personal/update" \
+               -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+               -H "Content-Type: application/json"
