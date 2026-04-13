@@ -46,8 +46,8 @@ server {
     }
 
     # Media/Uploads proxy
-    location /static/uploads/ {
-        alias /app/static/uploads/;
+    location /static/ {
+        root /app;
         expires 7d;
         add_header Cache-Control "public, no-transform";
     }
