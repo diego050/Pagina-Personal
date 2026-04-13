@@ -18,7 +18,7 @@ services:
       context: ./frontend
       args:
         # Change this to your public domain when deploying
-        - VITE_BACKEND_URL=https://diegovelazquez.dev/api
+        - VITE_BACKEND_URL=https://dbtech.cloud/api
     container_name: portfolio-frontend
     networks:
       - portfolio-network
