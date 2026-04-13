@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getBackendUrl } from '../../config';
 import { X, Plus, Trash2, Save, Upload } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -105,7 +106,7 @@ export default function SiteContentEditor({ item, value, onChange, onSave, onCan
                             </div>
                             {value && (
                                 <div className="h-48 rounded-xl bg-black/50 border border-white/5 overflow-hidden flex items-center justify-center relative mt-4">
-                                    <img src={value} alt="Preview" className="h-full object-contain" />
+                                    <img src={getBackendUrl(value)} alt="Preview" className="h-full object-contain" />
                                 </div>
                             )}
                         </div>

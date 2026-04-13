@@ -110,7 +110,7 @@ async def upload_image(file: UploadFile = File(...), path: str = Form(""), sessi
                     node.mime_type = "image/webp"
                 session.commit()
                 
-                return {"url": f"http://localhost:8000/static/uploads/{rel_path}"}
+                return {"url": f"/static/uploads/{rel_path}"}
         except Exception as e:
             # Fallback to normal upload if Pillow fails
             file.file.seek(0)
@@ -130,7 +130,7 @@ async def upload_image(file: UploadFile = File(...), path: str = Form(""), sessi
         session.add(node)
         session.commit()
         
-    return {"url": f"http://localhost:8000/static/uploads/{rel_path}"}
+    return {"url": f"/static/uploads/{rel_path}"}
 
 @app.get("/media")
 def read_media(path: str = "", session: Session = Depends(get_session)):
@@ -145,7 +145,7 @@ def read_media(path: str = "", session: Session = Depends(get_session)):
         return []
     
     items = []
-    base_url = "http://localhost:8000/static/uploads/"
+    base_url = "/static/uploads/"
     
     for filename in os.listdir(media_dir):
         if filename.endswith(("-sm.webp", "-md.webp", "-lg.webp")):
