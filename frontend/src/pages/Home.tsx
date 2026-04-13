@@ -72,7 +72,7 @@ export default function Home() {
                 description={t('seoHomeDesc')}
             />
             {/* Hero Section */}
-            <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden py-20">
+            <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden py-12 md:py-20">
                 <div className="absolute inset-0 bg-background" />
 
                 <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -82,7 +82,7 @@ export default function Home() {
                             initial={{ opacity: 0, x: -50 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.8 }}
-                            className="text-center lg:text-left flex flex-col items-center lg:items-start"
+                            className="text-center lg:text-left flex flex-col items-center lg:items-start order-2 lg:order-1"
                         >
                             <span className="block text-primary font-bold tracking-wider uppercase text-sm mb-4">
                                 {t('heroSubtitle')}
@@ -96,7 +96,7 @@ export default function Home() {
                                     __html: t('heroRole')
                                 }}
                             />
-                            <p className="text-lg text-zinc-500 max-w-lg mb-10 leading-relaxed text-justify">
+                            <p className="text-lg text-zinc-500 max-w-lg mb-6 md:mb-10 leading-relaxed text-justify">
                                 {t('heroDescription')}
                             </p>
 
@@ -123,7 +123,7 @@ export default function Home() {
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.8, delay: 0.2 }}
-                            className="relative flex justify-center lg:justify-end"
+                            className="relative flex justify-center lg:justify-end order-1 lg:order-2"
                         >
                             <div className="w-full max-w-md aspect-square rounded-3xl overflow-hidden bg-zinc-800 border border-white/5 relative group">
                                 <ResponsiveImage
@@ -144,7 +144,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.6 }}
-                className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
+                className="py-12 md:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
             >
                 <div className="mb-4">
                     <span className="block text-primary font-bold uppercase tracking-wider text-sm mb-2">{t('aboutSectionTitle')}</span>
