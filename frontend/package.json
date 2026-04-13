@@ -7,9 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "generate-sitemap": "node scripts/generate-sitemap.js",
-    "prebuild": "node scripts/generate-sitemap.js"
+    "preview": "vite preview"
   },
   "dependencies": {
     "autoprefixer": "^10.4.23",
