@@ -1,7 +1,6 @@
 services:
   backend:
     build: ./backend
-    container_name: portfolio-backend
     restart: always
     env_file:
       - ./backend/.env
@@ -18,13 +17,11 @@ services:
       context: ./frontend
       args:
         - VITE_BACKEND_URL=https://dbtech.cloud/api
-    container_name: portfolio-frontend
     networks:
       - portfolio-network
 
   nginx:
     build: ./nginx
-    container_name: portfolio-gateway
     restart: always
     ports:
       - "80:80"
@@ -44,7 +41,6 @@ services:
 
   certbot:
     image: certbot/certbot
-    container_name: portfolio-certbot
     volumes:
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
