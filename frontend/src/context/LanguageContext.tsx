@@ -19,6 +19,9 @@ export const translations = {
         noItems: 'No hay elementos disponibles.',
         downloadCV: 'Descargar CV',
         contactMe: 'Contactarme',
+        openMenu: 'Abrir menú de navegación',
+        closeMenu: 'Cerrar menú de navegación',
+        changeLanguage: 'Cambiar idioma',
         // Home
         heroTitle: 'Transformando Ideas en Experiencias Digitales',
         heroSubtitle: 'NEGOCIOS DIGITALES & DESARROLLO FULL-STACK',
@@ -116,6 +119,9 @@ export const translations = {
         noItems: 'No items available.',
         downloadCV: 'Download CV',
         contactMe: 'Contact Me',
+        openMenu: 'Open navigation menu',
+        closeMenu: 'Close navigation menu',
+        changeLanguage: 'Change language',
         // Home
         heroTitle: 'Transforming Ideas into Digital Experiences',
         heroSubtitle: 'DIGITAL BUSINESS & FULL-STACK ENGINEERING',
