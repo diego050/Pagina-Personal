@@ -21,9 +21,7 @@ export default function ResponsiveImage({
     sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw", 
     ...props 
 }: ResponsiveImageProps) {
-    // If the image is external or not local, we just render a standard img (we can't generate srcSets for external urls if we don't control them)
-    // Assume local means relative path or starting with our backend url
-    // Normalize src for local checks
+    // If the image is external or not local, we just render a standard img
     const isLocal = src.startsWith('/static/uploads') || 
                     src.startsWith('static/uploads') ||
                     src.startsWith('/') && !src.startsWith('//') || 
@@ -53,8 +51,6 @@ export default function ResponsiveImage({
     // Determine if we should use the backend URL (only for uploads)
     const isBackendUpload = normalizedSrc.startsWith('/static/uploads');
     const resolveUrl = (path: string) => isBackendUpload ? getBackendUrl(path) : path;
-
-
 
     const lastDotIndex = normalizedSrc.lastIndexOf('.');
     const basePath = lastDotIndex !== -1 ? normalizedSrc.substring(0, lastDotIndex) : normalizedSrc;
@@ -94,8 +90,7 @@ export default function ResponsiveImage({
             width={width} 
             height={height} 
             className={className} 
-            height={height} 
-            className={className} 
+            sizes={sizes}
             {...props} 
         />
     );
