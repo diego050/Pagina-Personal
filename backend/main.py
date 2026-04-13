@@ -72,8 +72,11 @@ async def upload_image(file: UploadFile = File(...), path: str = Form(""), sessi
         img_bytes = await file.read()
         try:
             with Image.open(io.BytesIO(img_bytes)) as img:
-                # Convert to RGB if necessary
+                # Keep transparency for WebP
                 if img.mode in ("RGBA", "P"):
+                    if img.mode == "P":
+                        img = img.convert("RGBA")
+                else:
                     img = img.convert("RGB")
                 
                 width, height = img.size

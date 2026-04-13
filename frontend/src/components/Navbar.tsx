@@ -5,6 +5,7 @@ import { Menu, X, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
 import { getAlternateUrl, STATIC_ROUTES } from '../utils/routeMappings';
+import ResponsiveImage from './ResponsiveImage';
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -67,7 +68,7 @@ export default function Navbar() {
                     <div className="flex items-center justify-between h-16">
                         <div className="flex-shrink-0">
                             <Link to={STATIC_ROUTES.home[language]} className="flex items-center gap-3 text-primary font-bold text-xl tracking-tighter">
-                                <img src="/Logo.png" alt="DBtech Logo" className="w-10 h-10 object-contain" />
+                                <ResponsiveImage src="/Logo.webp" alt="DBtech Logo" className="w-10 h-10 object-contain" />
                                 <span>DBtech</span>
                             </Link>
                         </div>
