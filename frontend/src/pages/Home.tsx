@@ -129,6 +129,8 @@ export default function Home() {
                                 <ResponsiveImage
                                     src="/static/uploads/profile.webp"
                                     alt="Profile"
+                                    lazy={false}
+                                    fetchPriority="high"
                                     className="w-full h-full object-cover transition-all duration-500"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-60" />
