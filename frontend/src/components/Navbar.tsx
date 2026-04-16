@@ -68,7 +68,7 @@ export default function Navbar() {
                     <div className="flex items-center justify-between h-16">
                         <div className="flex-shrink-0">
                             <Link to={STATIC_ROUTES.home[language]} className="flex items-center gap-3 text-primary font-bold text-xl tracking-tighter">
-                                <ResponsiveImage src="/Logo.webp" alt="DBtech Logo" className="w-10 h-10 object-contain" />
+                                <ResponsiveImage src="/Logo.webp" alt="DBtech Logo" lazy={false} fetchPriority="high" className="w-10 h-10 object-contain" />
                                 <span>DBtech</span>
                             </Link>
                         </div>

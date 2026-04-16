@@ -133,11 +133,13 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
                 <ResponsiveImage
                     src={project.image_url || "https://via.placeholder.com/400x300"}
                     alt={displayTitle}
+                    lazy={index !== 0}
+                    fetchPriority={index === 0 ? "high" : "auto"}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
             </div>
             <div className="p-6 flex flex-col flex-grow">
-                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">{displayTitle}</h3>
+                <h2 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">{displayTitle}</h2>
 
                 <p className="text-zinc-400 text-sm mb-4 line-clamp-3">
                     {displayDescription}
