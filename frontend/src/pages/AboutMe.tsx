@@ -83,11 +83,8 @@ export default function AboutMe() {
             />
             {/* Hero Section */}
             <section className="relative px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-24">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="glass-panel rounded-3xl p-8 md:p-12 relative overflow-hidden"
+                <div
+                    className="glass-panel rounded-3xl p-8 md:p-12 relative overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-1000"
                 >
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
                         <motion.div
@@ -101,19 +98,18 @@ export default function AboutMe() {
                             </h1>
 
                             {/* Mobile Image - Visible only on small screens < lg */}
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.4, duration: 0.8 }}
-                                className="relative lg:hidden w-full max-w-sm aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group mb-8 mx-auto"
+                            <div
+                                className="relative lg:hidden w-full max-w-sm aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group mb-8 mx-auto animate-in fade-in zoom-in-95 duration-1000 delay-300 fill-mode-both"
                             >
                                 <ResponsiveImage
                                     src="/static/uploads/profile-2.webp"
                                     alt="Profile"
+                                    loading="eager"
+                                    fetchPriority="high"
                                     className="w-full h-full object-cover object-top"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                            </motion.div>
+                            </div>
 
                             <p className="text-lg text-zinc-400 mb-8 leading-relaxed text-justify">
                                 {t('aboutIntro')}
@@ -129,23 +125,22 @@ export default function AboutMe() {
                                 </a>
                             </div>
                         </motion.div>
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.4, duration: 0.8 }}
-                            className="hidden lg:flex justify-end"
+                        <div
+                            className="hidden lg:flex justify-end animate-in fade-in zoom-in-95 duration-1000 delay-300 fill-mode-both"
                         >
                             <div className="relative w-full max-w-md aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
                                 <ResponsiveImage
                                     src="/static/uploads/profile-2.webp"
                                     alt="Profile"
+                                    loading="eager"
+                                    fetchPriority="high"
                                     className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
-                </motion.div>
+                </div>
             </section>
 
             {/* Work Experience Section */}
@@ -257,17 +252,19 @@ export default function AboutMe() {
                 <div className="bg-zinc-900/90 backdrop-blur-md border border-white/10 rounded-full px-2 py-1.5 shadow-xl shadow-black/50 flex items-center gap-1">
                     <a
                         href="#experience"
+                        aria-label={language === 'es' ? 'Ir a Experiencia' : 'Go to Experience'}
                         className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
                     >
-                        <Briefcase className="w-4 h-4" />
+                        <Briefcase className="w-4 h-4" aria-hidden="true" />
                         <span className="hidden sm:inline">{language === 'es' ? 'Experiencia' : 'Experience'}</span>
                     </a>
                     <div className="w-px h-4 bg-white/10"></div>
                     <a
                         href="#education"
+                        aria-label={language === 'es' ? 'Ir a Educación' : 'Go to Education'}
                         className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
                     >
-                        <GraduationCap className="w-4 h-4" />
+                        <GraduationCap className="w-4 h-4" aria-hidden="true" />
                         <span className="hidden sm:inline">{language === 'es' ? 'Educación' : 'Education'}</span>
                     </a>
                 </div>
