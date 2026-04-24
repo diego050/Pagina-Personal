@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import api from '../api';
 import SEO from '../components/SEO';
 import ResponsiveImage from '../components/ResponsiveImage';
+import { ChevronDown } from 'lucide-react';
 
 interface Project {
     id: number;
@@ -15,14 +16,16 @@ interface Project {
     slug?: string;
     title_en?: string;
     description_en?: string;
+    created_at: string;
 }
 
 import { useLanguage } from '../context/LanguageContext';
 
 export default function Projects() {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const [projects, setProjects] = useState<Project[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
     useEffect(() => {
         api.get('/projects')
@@ -30,15 +33,20 @@ export default function Projects() {
             .catch(err => console.error(err));
     }, []);
 
-    const filteredProjects = projects.filter(project => {
-        // Search across all content fields (including English)
-        const q = searchQuery.toLowerCase();
-        return (project.title.toLowerCase().includes(q) ||
-            project.description.toLowerCase().includes(q) ||
-            project.tags.toLowerCase().includes(q) ||
-            (project.title_en && project.title_en.toLowerCase().includes(q)) ||
-            (project.description_en && project.description_en.toLowerCase().includes(q)));
-    });
+    const filteredAndSortedProjects = projects
+        .filter(project => {
+            const q = searchQuery.toLowerCase();
+            return (project.title.toLowerCase().includes(q) ||
+                project.description.toLowerCase().includes(q) ||
+                project.tags.toLowerCase().includes(q) ||
+                (project.title_en && project.title_en.toLowerCase().includes(q)) ||
+                (project.description_en && project.description_en.toLowerCase().includes(q)));
+        })
+        .sort((a, b) => {
+            const dateA = new Date(a.created_at).getTime();
+            const dateB = new Date(b.created_at).getTime();
+            return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+        });
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12">
@@ -60,14 +68,33 @@ export default function Projects() {
                     </div>
 
                     {projects.length > 0 && (
-                        <div className="w-full max-w-md">
-                            <input
-                                type="text"
-                                placeholder={t('searchProjects')}
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-center"
-                            />
+                        <div className="w-full max-w-xl flex flex-col gap-6 items-center">
+                            <div className="relative w-full">
+                                <input
+                                    type="text"
+                                    placeholder={t('searchProjects')}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-6 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-center"
+                                />
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <label htmlFor="sort" className="text-sm text-zinc-500 whitespace-nowrap">
+                                    {language === 'es' ? 'Ordenar por:' : 'Sort by:'}
+                                </label>
+                                <div className="relative">
+                                    <select
+                                        id="sort"
+                                        value={sortOrder}
+                                        onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                                        className="appearance-none bg-zinc-900 border border-white/10 rounded-lg pl-4 pr-10 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer min-w-[160px]"
+                                    >
+                                        <option value="newest">{language === 'es' ? 'Más recientes' : 'Newest'}</option>
+                                        <option value="oldest">{language === 'es' ? 'Más antiguos' : 'Oldest'}</option>
+                                    </select>
+                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -75,10 +102,10 @@ export default function Projects() {
 
             {projects.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {filteredProjects.map((project, index) => (
+                    {filteredAndSortedProjects.map((project, index) => (
                         <ProjectCard key={project.id} project={project} index={index} />
                     ))}
-                    {filteredProjects.length === 0 && (
+                    {filteredAndSortedProjects.length === 0 && (
                         <div className="col-span-full text-center py-12 text-zinc-500">
                             {t('noResults')}
                         </div>
@@ -139,7 +166,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
                 />
             </div>
             <div className="p-6 flex flex-col flex-grow">
-                <h2 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">{displayTitle}</h2>
+                <h2 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors leading-snug pb-1">{displayTitle}</h2>
 
                 <p className="text-zinc-400 text-sm mb-4 line-clamp-3">
                     {displayDescription}

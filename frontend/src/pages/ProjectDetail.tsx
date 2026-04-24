@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, Link, useLocation } from 'react-router-dom';
-import { ArrowLeft, Globe } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import api from '../api';
@@ -16,13 +16,13 @@ interface Project {
     description: string;
     content: string;
     image_url: string;
-    link_url: string;
     tags: string;
     title_en?: string;
     description_en?: string;
     content_en?: string;
     secondary_link_url?: string;
-    secondary_link_label?: string;
+    secondary_link_label_en?: string;
+    additional_links?: string;
     image_alt?: string;
     image_width?: number;
     image_height?: number;
@@ -87,7 +87,7 @@ export default function ProjectDetail() {
             </Link>
 
             <header className="mb-12 text-center">
-                <h1 className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60 mb-6 mx-auto">
+                <h1 className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60 mb-6 mx-auto leading-tight pb-2">
                     {displayTitle}
                 </h1>
 
@@ -103,34 +103,75 @@ export default function ProjectDetail() {
                     {displayDescription}
                 </p>
 
-                <div className="flex justify-center gap-4">
-                    {project.link_url && (
-                        <a href={project.link_url} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-2 bg-white text-black px-6 py-2 rounded-full font-medium hover:bg-zinc-200 transition-colors">
-                            <Globe className="w-4 h-4" /> {t('visitSite')}
-                        </a>
-                    )}
-                    {project.secondary_link_url && (
-                        <a href={project.secondary_link_url} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-2 bg-white text-black px-6 py-2 rounded-full font-medium hover:bg-zinc-200 transition-colors">
-                            <Globe className="w-4 h-4" /> {project.secondary_link_label || 'Link Secundario'}
-                        </a>
-                    )}
+                <div className="flex flex-wrap justify-center gap-4">
+                    {/* Render dynamic additional links list */}
+                    {project.additional_links && (() => {
+                        try {
+                            const links = JSON.parse(project.additional_links);
+                            if (!Array.isArray(links)) return null;
+                            return links.map((link: any, i: number) => (
+                                <a key={i} href={link.url} target="_blank" rel="noopener noreferrer"
+                                    className={`flex items-center gap-2 px-8 py-3 rounded-full font-bold transition-all duration-300 active:scale-95 hover:-translate-y-1 hover:shadow-xl ${
+                                        i === 0 
+                                            ? 'bg-primary text-black hover:bg-accent hover:shadow-primary/20' 
+                                            : 'bg-white/10 text-white border border-white/20 hover:bg-white/20 hover:shadow-white/5'
+                                    }`}>
+                                    <Globe className="w-5 h-5" />
+                                    {language === 'en' && link.label_en ? link.label_en : (link.label || 'Link')}
+                                </a>
+                            ));
+                        } catch (e) {
+                            return null;
+                        }
+                    })()}
                 </div>
             </header>
 
             {project.image_url && (
-                <div className="mb-12 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/5">
-                    <ResponsiveImage src={project.image_url} alt={project.image_alt || displayTitle} className="w-full h-auto object-cover" />
-                </div>
+                <ResponsiveImage 
+                    src={project.image_url} 
+                    alt={project.image_alt || displayTitle} 
+                    className="w-full h-auto block rounded-2xl border border-white/10 shadow-2xl shadow-primary/5 mb-12" 
+                />
             )}
 
             <div className="prose prose-invert prose-lg max-w-none text-justify prose-img:mx-auto">
                 <ReactMarkdown 
                     rehypePlugins={[rehypeRaw]}
                     components={{
-                        // @ts-ignore
-                        img: ResponsiveImage
+                        p: ({ children }) => {
+                            // Detect if this paragraph only contains badges (images from shields.io)
+                            const isBadgeContainer = Array.isArray(children) && children.some(child => 
+                                typeof child === 'object' && 
+                                (child as any)?.props?.src?.includes('img.shields.io')
+                            );
+
+                            return (
+                                <p className={`mb-6 ${isBadgeContainer ? 'text-center flex flex-wrap justify-center gap-4' : ''}`}>
+                                    {children}
+                                </p>
+                            );
+                        },
+                        img: ({ ...props }) => {
+                            const isBadge = props.src?.includes('img.shields.io');
+                            
+                            if (isBadge) {
+                                return (
+                                    <img 
+                                        {...(props as any)} 
+                                        className="h-7 w-auto inline-block align-middle transition-transform hover:scale-110 !m-0" 
+                                    />
+                                );
+                            }
+
+                            return (
+                                <ResponsiveImage 
+                                    {...(props as any)} 
+                                    className="w-full h-auto block rounded-2xl border border-white/10 shadow-2xl shadow-primary/5 my-8 sm:my-12" 
+                                    sizes="(max-width: 768px) 100vw, 800px"
+                                />
+                            );
+                        }
                     }}
                 >
                     {displayContent}

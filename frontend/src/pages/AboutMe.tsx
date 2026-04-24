@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import SEO from '../components/SEO';
 import ResponsiveImage from '../components/ResponsiveImage';
+import ContactModal from '../components/ContactModal';
 import api from '../api';
 
 interface CertificationItem {
@@ -49,6 +50,7 @@ export default function AboutMe() {
     const [certifications, setCertifications] = useState<CertificationCategory[]>([]);
     const [experienceList, setExperienceList] = useState<ExperienceItem[]>([]);
     const [educationList, setEducationList] = useState<StudyItem[]>([]);
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
     useEffect(() => {
         const loadContent = async () => {
@@ -59,7 +61,7 @@ export default function AboutMe() {
 
                 const findVal = (key: string) => content.find((c: any) => c.key === key)?.value;
 
-                const cRaw = findVal('about_certifications');
+                const cRaw = findVal(`about_certifications${langSuffix}`) || findVal('about_certifications');
                 if (cRaw) setCertifications(JSON.parse(cRaw));
 
                 const expRaw = findVal(`about_experience${langSuffix}`);
@@ -76,15 +78,15 @@ export default function AboutMe() {
     }, [language]);
 
     return (
-        <div className="min-h-screen pt-20 pb-20">
+        <div className="min-h-screen pt-4 md:pt-10 pb-20">
             <SEO
                 title={t('seoAboutTitle')}
                 description={t('seoAboutDesc')}
             />
             {/* Hero Section */}
-            <section className="relative px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-24">
+            <section className="relative px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-10 md:mb-24">
                 <div
-                    className="glass-panel rounded-3xl p-8 md:p-12 relative overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-1000"
+                    className="glass-panel rounded-3xl p-6 md:p-12 relative overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-1000"
                 >
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
                         <motion.div
@@ -93,13 +95,13 @@ export default function AboutMe() {
                             transition={{ delay: 0.2, duration: 0.8 }}
                             className="flex flex-col items-center lg:items-start text-center lg:text-left"
                         >
-                            <h1 className="text-4xl md:text-5xl font-bold text-white mb-8 lg:mb-6">
+                            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 md:mb-8 lg:mb-6">
                                 {t('aboutProfile')} <span className="text-cyan-500">{language === 'es' ? 'Mí' : 'Me'}</span>
                             </h1>
 
                             {/* Mobile Image - Visible only on small screens < lg */}
                             <div
-                                className="relative lg:hidden w-full max-w-sm aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group mb-8 mx-auto animate-in fade-in zoom-in-95 duration-1000 delay-300 fill-mode-both"
+                                className="relative lg:hidden w-full max-w-sm aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group mb-6 md:mb-8 mx-auto animate-in fade-in zoom-in-95 duration-1000 delay-300 fill-mode-both"
                             >
                                 <ResponsiveImage
                                     src="/static/uploads/profile-2.webp"
@@ -111,7 +113,7 @@ export default function AboutMe() {
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                             </div>
 
-                            <p className="text-lg text-zinc-400 mb-8 leading-relaxed text-justify">
+                            <p className="text-lg text-zinc-400 mb-6 md:mb-8 leading-relaxed text-justify">
                                 {t('aboutIntro')}
                             </p>
                             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
@@ -119,10 +121,13 @@ export default function AboutMe() {
                                     <Download className="w-5 h-5" />
                                     {t('downloadCV')}
                                 </a>
-                                <a href="mailto:bazand25@gmail.com" className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium rounded-lg transition-colors">
+                                <button 
+                                    onClick={() => setIsContactModalOpen(true)}
+                                    className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium rounded-lg transition-colors"
+                                >
                                     <Mail className="w-5 h-5" />
                                     {t('contactMe')}
-                                </a>
+                                </button>
                             </div>
                         </motion.div>
                         <div
@@ -144,8 +149,8 @@ export default function AboutMe() {
             </section>
 
             {/* Work Experience Section */}
-            <section id="experience" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-24">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
+            <section id="experience" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-10 md:mb-24">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 md:mb-8">
                     <div className="flex items-center gap-3">
                         <div className="p-3 bg-cyan-500/10 rounded-xl text-cyan-500">
                             <Building2 className="w-6 h-6" />
@@ -154,7 +159,7 @@ export default function AboutMe() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-8">
+                <div className="grid grid-cols-1 gap-6 md:gap-8">
                     {experienceList.map((job) => (
                         <ExperienceCard key={job.id} job={job} />
                     ))}
@@ -163,7 +168,7 @@ export default function AboutMe() {
 
             {/* Education Section */}
             <section id="education" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-                <div className="flex items-center gap-3 mb-10">
+                <div className="flex items-center gap-3 mb-4 md:mb-8">
                     <div className="p-3 bg-cyan-500/10 rounded-xl text-cyan-500">
                         <GraduationCap className="w-6 h-6" />
                     </div>
@@ -178,7 +183,7 @@ export default function AboutMe() {
                             whileInView={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.5 }}
                             viewport={{ once: true }}
-                            className="glass-panel rounded-2xl p-8 relative overflow-hidden group hover:border-cyan-500/30 transition-colors mb-8"
+                            className="glass-panel rounded-2xl p-6 sm:p-8 relative overflow-hidden group hover:border-cyan-500/30 transition-colors mb-6 md:mb-8"
                         >
                             <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                             
@@ -193,14 +198,14 @@ export default function AboutMe() {
                                     <h3 className="text-2xl font-bold text-white mb-2">{study.degree}</h3>
                                     <h4 className="text-lg text-cyan-500 font-medium mb-4">{study.university}</h4>
                                     
-                                    <div className="flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-2 text-zinc-400 text-sm mb-6">
+                                    <div className="flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-2 text-zinc-400 text-sm mb-4 md:mb-6">
                                         <div className="flex items-center gap-2">
                                             <Calendar className="w-4 h-4" />
                                             <span>{study.period}</span>
                                         </div>
                                     </div>
                                     
-                                    <div className="bg-zinc-950/30 rounded-xl p-5 border border-white/5 w-full">
+                                    <div className="bg-zinc-950/30 rounded-xl p-4 sm:p-5 border border-white/5 w-full">
                                         <p className="text-zinc-300 text-sm leading-relaxed text-justify">
                                             {study.description}
                                         </p>
@@ -211,13 +216,13 @@ export default function AboutMe() {
                     ))}
 
                     {/* Certifications Grid */}
-                    <div className="mt-16">
-                        <h4 className="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-wider mb-8">
-                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
+                    <div className="mt-4 md:mt-8">
+                        <h4 className="flex items-center gap-2 text-2xl font-bold text-white mb-6 md:mb-8">
+                            <span className="w-2 h-2 rounded-full bg-cyan-500"></span>
                             {t('certificationsTitle')}
                         </h4>
 
-                        <div className="space-y-12">
+                        <div className="space-y-8 md:space-y-12">
                             {certifications.length > 0 ? (
                                 certifications.map((cat, idx) => (
                                     <div key={idx}>
@@ -269,6 +274,10 @@ export default function AboutMe() {
                     </a>
                 </div>
             </div>
+            <ContactModal 
+                isOpen={isContactModalOpen} 
+                onClose={() => setIsContactModalOpen(false)} 
+            />
         </div >
     );
 }
@@ -370,7 +379,7 @@ function CertificationCard({ title, issuer, year, description, icon, color, badg
                     <span className="text-xs font-mono text-zinc-500 border border-zinc-800 px-2 py-1 rounded">{year}</span>
                 </div>
             </div>
-            <h3 className="text-white font-bold mb-2 group-hover:text-cyan-400 transition-colors">{title}</h3>
+            <h3 className="text-white font-bold mb-2 group-hover:text-cyan-400 transition-colors leading-snug pb-1">{title}</h3>
             <p className="text-xs text-zinc-500 uppercase tracking-wide mb-3">{issuer}</p>
             <p className="text-sm text-zinc-400 leading-relaxed mt-auto">{description}</p>
         </Component>
@@ -406,7 +415,7 @@ function ExperienceCard({ job }: { job: any }) {
 
                     <h3 className="text-xl md:text-2xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">{job.title}</h3>
 
-                    <div className="flex flex-wrap justify-center lg:justify-start items-center gap-x-3 gap-y-1 text-zinc-400 text-sm mb-6">
+                    <div className="flex flex-wrap justify-center lg:justify-start items-center gap-x-3 gap-y-1 text-zinc-400 text-sm mb-4 md:mb-6">
                         <span className="font-medium text-zinc-300">{job.company}</span>
                         <span className="hidden sm:inline w-1 h-1 rounded-full bg-zinc-600"></span>
                         <span>{job.period}</span>
@@ -416,7 +425,7 @@ function ExperienceCard({ job }: { job: any }) {
                         <span>{job.location}</span>
                     </div>
 
-                    <div className="bg-zinc-950/30 rounded-xl p-5 border border-white/5 w-full text-left">
+                    <div className="bg-zinc-950/30 rounded-xl p-4 md:p-5 border border-white/5 w-full text-left">
                         {job.description && (
                             <p className="text-zinc-300 mb-4 leading-relaxed whitespace-pre-line text-justify">
                                 <RichTextRenderer text={job.description} />

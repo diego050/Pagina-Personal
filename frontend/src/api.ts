@@ -67,8 +67,8 @@ export const uploadMedia = async (file: File, path: string = "") => {
     });
 };
 
-export const subscribe = async (name: string, email: string) => {
-    return api.post('/subscribe', { name, email });
+export const subscribe = async (name: string, email: string, honeypot?: string) => {
+    return api.post('/subscribe', { name, email, honeypot });
 };
 
 export default api;

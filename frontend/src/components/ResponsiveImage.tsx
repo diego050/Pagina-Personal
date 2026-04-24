@@ -66,7 +66,7 @@ export default function ResponsiveImage({
         `;
         
         return (
-            <picture>
+            <picture className={`${className} block overflow-hidden`}>
                 <source srcSet={srcSet} sizes={sizes} type="image/webp" />
                 <img 
                     src={resolveUrl(normalizedSrc)} 
@@ -74,7 +74,7 @@ export default function ResponsiveImage({
                     loading={lazy ? "lazy" : "eager"} 
                     width={width} 
                     height={height} 
-                    className={className} 
+                    className="w-full h-auto block" 
                     sizes={sizes}
                     {...props} 
                 />

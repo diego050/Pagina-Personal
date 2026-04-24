@@ -90,7 +90,7 @@ export const translations = {
         degreeTitle: 'Administración y Negocios Digitales',
         universityName: 'UTEC - Universidad de Ingeniería y Tecnología',
         degreeDetails: '2021 - 2026 | 9no Ciclo - Tercio Superior',
-        degreeDescription: 'Formación centrada en la intersección de la gestión estratégica y la tecnología. Especializado en agilidad, modelos de negocio digitales y desarrollo de software.',
+        degreeDescription: 'Primera carrera de administración y negocios digitales en el Perú. Formación centrada en transformación digital, business intelligence, productos digitales, marketing digital, análisis de datos y gestión ágil. Orientada al liderazgo de digitalización empresarial, gestión de startups e innovación organizacional.',
         certificationsTitle: 'Certificaciones Profesionales',
 
         // Footer
@@ -199,7 +199,7 @@ export const translations = {
         degreeTitle: 'Administration and Digital Business',
         universityName: 'UTEC - University of Engineering and Technology',
         degreeDetails: '2021 - 2026 | 9th Cycle - Top Third',
-        degreeDescription: 'Education focused on the intersection of strategic management and technology. Specialized in agility, digital business models, and software development.',
+        degreeDescription: 'First degree program in Digital Business Administration in Peru. Training focused on digital transformation, business intelligence, digital products, digital marketing, data analytics, and agile management. Oriented towards leadership in business digitalization, startup management, and organizational innovation.',
         certificationsTitle: 'Professional Certifications',
 
         // Footer

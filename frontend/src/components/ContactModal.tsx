@@ -12,7 +12,7 @@ interface ContactModalProps {
 const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
     const { t } = useLanguage();
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-    const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+    const [formData, setFormData] = useState({ name: '', email: '', message: '', honeypot: '' });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -23,7 +23,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
             setTimeout(() => {
                 onClose();
                 setStatus('idle');
-                setFormData({ name: '', email: '', message: '' });
+                setFormData({ name: '', email: '', message: '', honeypot: '' });
             }, 3000);
         } catch (error) {
             console.error(error);
@@ -34,7 +34,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -48,14 +48,14 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.9, opacity: 0, y: 20 }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="relative w-full max-w-lg bg-zinc-950/50 border border-white/10 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-2xl"
+                        className="relative w-full max-w-lg bg-zinc-950/50 border border-white/10 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-2xl max-h-[calc(100dvh-2rem)] flex flex-col"
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Header Decoration */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
                         
-                        <div className="p-8">
-                            <div className="flex justify-between items-center mb-8">
+                        <div className="p-6 sm:p-8 overflow-y-auto custom-scrollbar">
+                             <div className="flex justify-between items-center mb-6 sm:mb-8">
                                 <div>
                                     <h2 className="text-2xl font-bold text-white mb-1">{t('letsTalk')}</h2>
                                     <p className="text-zinc-400 text-sm">{t('letsTalkDesc')}</p>
@@ -81,7 +81,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                                     <p className="text-zinc-400">{t('messageSentDesc')}</p>
                                 </motion.div>
                             ) : (
-                                <form onSubmit={handleSubmit} className="space-y-6">
+                                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                                     <div className="space-y-2">
                                         <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">
                                             {t('name')}
@@ -130,13 +130,24 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                                             </div>
                                             <textarea
                                                 required
-                                                rows={4}
+                                                rows={3}
                                                 value={formData.message}
                                                 onChange={e => setFormData({...formData, message: e.target.value})}
                                                 placeholder={t('letsTalkDesc')}
                                                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-cyan-500/50 focus:bg-white/[0.08] transition-all resize-none"
                                             />
                                         </div>
+                                    </div>
+                                    
+                                    <div className="hidden" aria-hidden="true">
+                                        <input
+                                            type="text"
+                                            name="subject_id"
+                                            tabIndex={-1}
+                                            autoComplete="off"
+                                            value={formData.honeypot}
+                                            onChange={e => setFormData({...formData, honeypot: e.target.value})}
+                                        />
                                     </div>
 
                                     <button

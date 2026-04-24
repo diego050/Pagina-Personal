@@ -40,9 +40,12 @@ export default function Admin() {
     const [showPreview, setShowPreview] = useState(false);
     const [showPreviewEn, setShowPreviewEn] = useState(false);
     const [articleTitle, setArticleTitle] = useState('');
+    const [articleTitleEn, setArticleTitleEn] = useState('');
     const [articleSlug, setArticleSlug] = useState('');
     const [articleExcerpt, setArticleExcerpt] = useState('');
+    const [articleExcerptEn, setArticleExcerptEn] = useState('');
     const [articleContent, setArticleContent] = useState('');
+    const [articleContentEn, setArticleContentEn] = useState('');
     const [articleCategory, setArticleCategory] = useState('');
     const [articleTags, setArticleTags] = useState('');
     const [articleImage, setArticleImage] = useState('');
@@ -60,7 +63,7 @@ export default function Admin() {
     const [projectDescEn, setProjectDescEn] = useState(''); // New
     const [projectContent, setProjectContent] = useState('');
     const [projectContentEn, setProjectContentEn] = useState(''); // New
-    const [projectLink, setProjectLink] = useState('');
+    const [additionalLinks, setAdditionalLinks] = useState<{url: string, label: string, label_en: string}[]>([]);
     const [projectImage, setProjectImage] = useState('');
     const [projectTags, setProjectTags] = useState('');
 
@@ -77,6 +80,20 @@ export default function Admin() {
     // UI View State
     const [showTechMeta, setShowTechMeta] = useState(false);
     const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+
+    const addAdditionalLink = () => {
+        setAdditionalLinks([...additionalLinks, { url: '', label: '', label_en: '' }]);
+    };
+
+    const removeAdditionalLink = (index: number) => {
+        setAdditionalLinks(additionalLinks.filter((_, i) => i !== index));
+    };
+
+    const updateAdditionalLink = (index: number, field: string, value: string) => {
+        const newLinks = [...additionalLinks];
+        newLinks[index] = { ...newLinks[index], [field]: value } as any;
+        setAdditionalLinks(newLinks);
+    };
 
     const openMediaSelector = (callback: (url: string) => void) => {
         setMediaSelectorCallback(() => callback);
@@ -239,30 +256,43 @@ export default function Admin() {
         }
     };
 
-    // ... (Existing Article/Project handlers: handleEditArticle, handleEditProject, handleDeleteArticle, handleDeleteProject, resetForm, insertMarkdown, insertAlignment, handleImageUpload, handleSaveArticle, handleSaveProject)
     const handleEditArticle = (article: any) => {
         setEditingId(article.id);
         setActiveTab('articles');
         setArticleTitle(article.title);
+        setArticleTitleEn(article.title_en || '');
         setArticleSlug(article.slug);
         setArticleExcerpt(article.excerpt || '');
+        setArticleExcerptEn(article.excerpt_en || '');
         setArticleContent(article.content);
+        setArticleContentEn(article.content_en || '');
         setArticleCategory(article.category || '');
         setArticleTags(article.tags || '');
         setArticleImage(article.image_url || '');
+        try {
+            const extra = article.additional_links ? JSON.parse(article.additional_links) : [];
+            setAdditionalLinks(Array.isArray(extra) ? extra : []);
+        } catch (e) {
+            setAdditionalLinks([]);
+        }
     };
 
     const handleEditProject = (project: any) => {
         setEditingId(project.id);
         setActiveTab('projects');
         setProjectTitle(project.title);
-        setProjectTitleEn(project.title_en || ''); // New
+        setProjectTitleEn(project.title_en || '');
         setProjectSlug(project.slug || '');
         setProjectDesc(project.description || '');
-        setProjectDescEn(project.description_en || ''); // New
+        setProjectDescEn(project.description_en || '');
         setProjectContent(project.content || '');
-        setProjectContentEn(project.content_en || ''); // New
-        setProjectLink(project.link_url || '');
+        setProjectContentEn(project.content_en || '');
+        try {
+            const extra = project.additional_links ? JSON.parse(project.additional_links) : [];
+            setAdditionalLinks(Array.isArray(extra) ? extra : []);
+        } catch (e) {
+            setAdditionalLinks([]);
+        }
         setProjectImage(project.image_url);
         setProjectTags(project.tags);
     };
@@ -295,13 +325,16 @@ export default function Admin() {
 
     const resetForm = () => {
         setEditingId(null);
-        setArticleTitle(''); setArticleSlug(''); setArticleExcerpt(''); setArticleContent('');
+        setArticleTitle(''); setArticleTitleEn('');
+        setArticleSlug('');
+        setArticleExcerpt(''); setArticleExcerptEn('');
+        setArticleContent(''); setArticleContentEn('');
         setArticleCategory(''); setArticleTags(''); setArticleImage('');
-        setProjectTitle(''); setProjectTitleEn(''); // New
-        setProjectDesc(''); setProjectDescEn(''); // New
-        setProjectLink('');
+        setProjectTitle(''); setProjectTitleEn('');
+        setProjectDesc(''); setProjectDescEn('');
+        setAdditionalLinks([]);
         setProjectImage(''); setProjectTags(''); setProjectSlug('');
-        setProjectContent(''); setProjectContentEn(''); // New
+        setProjectContent(''); setProjectContentEn('');
     };
 
     const insertMarkdownAt = (prefix: string, suffix: string, editorId: string, setter: React.Dispatch<React.SetStateAction<string>>) => {
@@ -371,13 +404,17 @@ export default function Admin() {
         try {
             const payload = {
                 title: articleTitle,
+                title_en: articleTitleEn,
                 slug: articleSlug,
                 excerpt: articleExcerpt,
+                excerpt_en: articleExcerptEn,
                 content: articleContent,
+                content_en: articleContentEn,
                 category: articleCategory || 'General',
                 tags: articleTags,
                 image_url: articleImage,
-                is_published: true
+                is_published: true,
+                additional_links: JSON.stringify(additionalLinks)
             };
 
             if (editingId) {
@@ -404,9 +441,8 @@ export default function Admin() {
                 slug: projectSlug,
                 description: projectDesc,
                 description_en: projectDescEn, // New
-                content: projectContent,
                 content_en: projectContentEn, // New
-                link_url: projectLink,
+                additional_links: JSON.stringify(additionalLinks),
                 image_url: projectImage,
                 tags: projectTags
             };
@@ -677,12 +713,16 @@ export default function Admin() {
                         <div className="lg:col-span-2 space-y-8">
                             <div className="glass-panel p-8 rounded-2xl border border-white/5 bg-zinc-900/50">
                                 {activeTab === 'articles' ? (
-                                    <form onSubmit={handleSaveArticle} className="space-y-6">
-                                        <div className="flex gap-4">
+                                    <form onSubmit={handleSaveArticle} className="space-y-6">                                        <div className="flex gap-4">
                                             <div className="flex-1">
-                                                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Title</label>
+                                                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Title (ES)</label>
                                                 <input className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none transition-all placeholder:text-zinc-700"
-                                                    value={articleTitle} onChange={e => setArticleTitle(e.target.value)} required placeholder="My Amazing Article" />
+                                                    value={articleTitle} onChange={e => setArticleTitle(e.target.value)} required placeholder="Mi artículo increíble" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Title (EN)</label>
+                                                <input className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none transition-all placeholder:text-zinc-700"
+                                                    value={articleTitleEn} onChange={e => setArticleTitleEn(e.target.value)} placeholder="My Amazing Article" />
                                             </div>
                                             <div className="flex-1">
                                                 <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Slug</label>
@@ -690,49 +730,45 @@ export default function Admin() {
                                                     value={articleSlug} onChange={e => setArticleSlug(e.target.value)} required placeholder="my-amazing-article" />
                                             </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Excerpt</label>
-                                            <textarea className="w-full h-24 bg-black/40 border border-white/10 rounded-xl p-3 text-zinc-300 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none transition-all placeholder:text-zinc-700 resize-none"
-                                                value={articleExcerpt} onChange={e => setArticleExcerpt(e.target.value)} placeholder="A quick summary for SEO and cards..." />
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Excerpt (ES)</label>
+                                                <textarea className="w-full h-24 bg-black/40 border border-white/10 rounded-xl p-3 text-zinc-300 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none transition-all placeholder:text-zinc-700 resize-none"
+                                                    value={articleExcerpt} onChange={e => setArticleExcerpt(e.target.value)} placeholder="Breve resumen..." />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Excerpt (EN)</label>
+                                                <textarea className="w-full h-24 bg-black/40 border border-white/10 rounded-xl p-3 text-zinc-300 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none transition-all placeholder:text-zinc-700 resize-none"
+                                                    value={articleExcerptEn} onChange={e => setArticleExcerptEn(e.target.value)} placeholder="Short summary..." />
+                                            </div>
                                         </div>
-                                        {/* Markdown Editor Component */}
+
+                                        {/* Content Editor ES */}
                                         <div className="bg-black/40 rounded-xl border border-white/10 overflow-hidden focus-within:border-cyan-500/50 transition-colors">
                                             <div className="flex flex-wrap items-center justify-between px-4 py-2 border-b border-white/5 bg-white/5 gap-2">
-                                                <span className="hidden sm:block text-xs font-bold text-zinc-500 uppercase">Content</span>
+                                                <span className="hidden sm:block text-xs font-bold text-zinc-500 uppercase">Content (ES)</span>
                                                 <div className="flex flex-wrap items-center gap-1">
                                                     <button type="button" onClick={() => insertMarkdownAt('**', '**', 'article-editor', setArticleContent)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Bold"><Bold className="w-3 h-3" /></button>
                                                     <button type="button" onClick={() => insertMarkdownAt('*', '*', 'article-editor', setArticleContent)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Italic"><Italic className="w-3 h-3" /></button>
-
                                                     <div className="w-px h-3 bg-white/10 mx-1"></div>
-
                                                     <button type="button" onClick={() => insertMarkdownAt('# ', '', 'article-editor', setArticleContent)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Heading 1"><Heading1 className="w-3 h-3" /></button>
                                                     <button type="button" onClick={() => insertMarkdownAt('## ', '', 'article-editor', setArticleContent)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Heading 2"><Heading2 className="w-3 h-3" /></button>
                                                     <button type="button" onClick={() => insertMarkdownAt('### ', '', 'article-editor', setArticleContent)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Heading 3"><Heading3 className="w-3 h-3" /></button>
-
                                                     <div className="w-px h-3 bg-white/10 mx-1"></div>
-
                                                     <button type="button" onClick={() => insertMarkdownAt('- ', '', 'article-editor', setArticleContent)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Bullet List"><List className="w-3 h-3" /></button>
                                                     <button type="button" onClick={() => insertMarkdownAt('1. ', '', 'article-editor', setArticleContent)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Ordered List"><ListOrdered className="w-3 h-3" /></button>
                                                     <button type="button" onClick={() => insertMarkdownAt('> ', '', 'article-editor', setArticleContent)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Quote"><Quote className="w-3 h-3" /></button>
-
                                                     <div className="w-px h-3 bg-white/10 mx-1"></div>
-
                                                     <button type="button" onClick={() => insertMarkdownAt('[', '](url)', 'article-editor', setArticleContent)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Link"><LinkIcon className="w-3 h-3" /></button>
-                                                    
-                                                    <button type="button" onClick={() => handleInsertImageFromMedia('article-editor', setArticleContent)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Insert Image from Media">
-                                                        <ImageIcon className="w-3 h-3" />
-                                                    </button>
+                                                    <button type="button" onClick={() => handleInsertImageFromMedia('article-editor', setArticleContent)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Insert Image from Media"><ImageIcon className="w-3 h-3" /></button>
                                                     <label className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded cursor-pointer" title="Direct Upload Image">
                                                         <Upload className="w-3 h-3" />
                                                         <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUploadGeneric(e, 'article-editor', setArticleContent)} />
                                                     </label>
-
                                                     <div className="w-px h-3 bg-white/10 mx-1"></div>
-
                                                     <button type="button" onClick={() => insertMarkdownAt(`<div style="text-align: left">\n\n`, '\n\n</div>', 'article-editor', setArticleContent)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Align Left"><AlignLeft className="w-3 h-3" /></button>
                                                     <button type="button" onClick={() => insertMarkdownAt(`<div style="text-align: center">\n\n`, '\n\n</div>', 'article-editor', setArticleContent)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Align Center"><AlignCenter className="w-3 h-3" /></button>
                                                     <button type="button" onClick={() => insertMarkdownAt(`<div style="text-align: justify">\n\n`, '\n\n</div>', 'article-editor', setArticleContent)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Justify"><AlignJustify className="w-3 h-3" /></button>
-
                                                     <div className="flex bg-black/50 rounded-md p-0.5 ml-2 border border-white/5">
                                                         <button type="button" onClick={() => setShowPreview(false)} className={`px-2 py-1 text-[10px] font-bold uppercase rounded ${!showPreview ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>Edit</button>
                                                         <button type="button" onClick={() => setShowPreview(true)} className={`px-2 py-1 text-[10px] font-bold uppercase rounded ${showPreview ? 'bg-cyan-600 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>Preview</button>
@@ -744,10 +780,53 @@ export default function Admin() {
                                                     <ReactMarkdown rehypePlugins={[rehypeRaw]}>{articleContent}</ReactMarkdown>
                                                 </div>
                                             ) : (
-                                                <textarea id="article-editor" className="w-full h-[400px] bg-transparent p-6 text-zinc-300 font-mono text-sm focus:outline-none resize-none leading-relaxed"
-                                                    value={articleContent} onChange={e => setArticleContent(e.target.value)} placeholder="# Start writing..." required />
+                                                <textarea id="article-editor" className="w-full h-[300px] bg-transparent p-6 text-zinc-300 font-mono text-sm focus:outline-none resize-none leading-relaxed"
+                                                    value={articleContent} onChange={e => setArticleContent(e.target.value)} placeholder="# Contenido en español..." required />
                                             )}
                                         </div>
+
+                                        {/* Content Editor EN */}
+                                        <div className="bg-black/40 rounded-xl border border-white/10 overflow-hidden focus-within:border-cyan-500/50 transition-colors">
+                                            <div className="flex flex-wrap items-center justify-between px-4 py-2 border-b border-white/5 bg-white/5 gap-2">
+                                                <span className="hidden sm:block text-xs font-bold text-zinc-500 uppercase">Content (EN)</span>
+                                                <div className="flex flex-wrap items-center gap-1">
+                                                    <button type="button" onClick={() => insertMarkdownAt('**', '**', 'article-editor-en', setArticleContentEn)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Bold"><Bold className="w-3 h-3" /></button>
+                                                    <button type="button" onClick={() => insertMarkdownAt('*', '*', 'article-editor-en', setArticleContentEn)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Italic"><Italic className="w-3 h-3" /></button>
+                                                    <div className="w-px h-3 bg-white/10 mx-1"></div>
+                                                    <button type="button" onClick={() => insertMarkdownAt('# ', '', 'article-editor-en', setArticleContentEn)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Heading 1"><Heading1 className="w-3 h-3" /></button>
+                                                    <button type="button" onClick={() => insertMarkdownAt('## ', '', 'article-editor-en', setArticleContentEn)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Heading 2"><Heading2 className="w-3 h-3" /></button>
+                                                    <button type="button" onClick={() => insertMarkdownAt('### ', '', 'article-editor-en', setArticleContentEn)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Heading 3"><Heading3 className="w-3 h-3" /></button>
+                                                    <div className="w-px h-3 bg-white/10 mx-1"></div>
+                                                    <button type="button" onClick={() => insertMarkdownAt('- ', '', 'article-editor-en', setArticleContentEn)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Bullet List"><List className="w-3 h-3" /></button>
+                                                    <button type="button" onClick={() => insertMarkdownAt('1. ', '', 'article-editor-en', setArticleContentEn)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Ordered List"><ListOrdered className="w-3 h-3" /></button>
+                                                    <button type="button" onClick={() => insertMarkdownAt('> ', '', 'article-editor-en', setArticleContentEn)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Quote"><Quote className="w-3 h-3" /></button>
+                                                    <div className="w-px h-3 bg-white/10 mx-1"></div>
+                                                    <button type="button" onClick={() => insertMarkdownAt('[', '](url)', 'article-editor-en', setArticleContentEn)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Link"><LinkIcon className="w-3 h-3" /></button>
+                                                    <button type="button" onClick={() => handleInsertImageFromMedia('article-editor-en', setArticleContentEn)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Insert Image from Media"><ImageIcon className="w-3 h-3" /></button>
+                                                    <label className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded cursor-pointer" title="Direct Upload Image">
+                                                        <Upload className="w-3 h-3" />
+                                                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUploadGeneric(e, 'article-editor-en', setArticleContentEn)} />
+                                                    </label>
+                                                    <div className="w-px h-3 bg-white/10 mx-1"></div>
+                                                    <button type="button" onClick={() => insertMarkdownAt(`<div style="text-align: left">\n\n`, '\n\n</div>', 'article-editor-en', setArticleContentEn)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Align Left"><AlignLeft className="w-3 h-3" /></button>
+                                                    <button type="button" onClick={() => insertMarkdownAt(`<div style="text-align: center">\n\n`, '\n\n</div>', 'article-editor-en', setArticleContentEn)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Align Center"><AlignCenter className="w-3 h-3" /></button>
+                                                    <button type="button" onClick={() => insertMarkdownAt(`<div style="text-align: justify">\n\n`, '\n\n</div>', 'article-editor-en', setArticleContentEn)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded" title="Justify"><AlignJustify className="w-3 h-3" /></button>
+                                                    <div className="flex bg-black/50 rounded-md p-0.5 ml-2 border border-white/5">
+                                                        <button type="button" onClick={() => setShowPreviewEn(false)} className={`px-2 py-1 text-[10px] font-bold uppercase rounded ${!showPreviewEn ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>Edit</button>
+                                                        <button type="button" onClick={() => setShowPreviewEn(true)} className={`px-2 py-1 text-[10px] font-bold uppercase rounded ${showPreviewEn ? 'bg-cyan-600 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>Preview</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {showPreviewEn ? (
+                                                <div className="p-6 prose prose-invert prose-sm max-w-none h-[400px] overflow-y-auto bg-zinc-900">
+                                                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>{articleContentEn}</ReactMarkdown>
+                                                </div>
+                                            ) : (
+                                                <textarea id="article-editor-en" className="w-full h-[300px] bg-transparent p-6 text-zinc-300 font-mono text-sm focus:outline-none resize-none leading-relaxed"
+                                                    value={articleContentEn} onChange={e => setArticleContentEn(e.target.value)} placeholder="Detailed content in English..." />
+                                            )}
+                                        </div>
+
                                         <div className="flex gap-4">
                                             <div className="flex-1">
                                                 <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Category</label>
@@ -763,6 +842,52 @@ export default function Admin() {
                                                         <ImageIcon className="w-4 h-4" />
                                                     </button>
                                                 </div>
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Tags</label>
+                                                <input className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-cyan-500 focus:outline-none transition-all"
+                                                    value={articleTags} onChange={e => setArticleTags(e.target.value)} placeholder="React, Python" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4 bg-white/5 p-4 rounded-xl border border-white/5">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Additional Links</h4>
+                                                <button type="button" onClick={addAdditionalLink} className="flex items-center gap-1 text-[10px] bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500 hover:text-black px-2 py-1 rounded-full transition-all font-bold">
+                                                    <Plus className="w-3 h-3" /> Add Link
+                                                </button>
+                                            </div>
+                                            
+                                            {additionalLinks.length === 0 && (
+                                                <div className="text-center py-4 border-2 border-dashed border-white/5 rounded-lg">
+                                                    <p className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest">No additional links</p>
+                                                </div>
+                                            )}
+
+                                            <div className="space-y-3">
+                                                {additionalLinks.map((link, index) => (
+                                                    <div key={index} className="grid grid-cols-1 md:grid-cols-[1fr,1fr,1fr,auto] gap-3 p-3 bg-black/40 rounded-lg border border-white/5 relative group">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-bold text-zinc-500 uppercase">URL</label>
+                                                            <input className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs text-white focus:border-cyan-500 focus:outline-none transition-all"
+                                                                value={link.url} onChange={e => updateAdditionalLink(index, 'url', e.target.value)} placeholder="https://..." />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-bold text-zinc-500 uppercase">Label (ES)</label>
+                                                            <input className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs text-white focus:border-cyan-500 focus:outline-none transition-all"
+                                                                value={link.label} onChange={e => updateAdditionalLink(index, 'label', e.target.value)} placeholder="Ver..." />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-bold text-zinc-500 uppercase">Label (EN)</label>
+                                                            <input className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs text-white focus:border-cyan-500 focus:outline-none transition-all"
+                                                                value={link.label_en} onChange={e => updateAdditionalLink(index, 'label_en', e.target.value)} placeholder="View..." />
+                                                        </div>
+                                                        <div className="flex items-end">
+                                                            <button type="button" onClick={() => removeAdditionalLink(index)} className="p-2 text-zinc-500 hover:text-red-500 transition-colors">
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
                                         <button type="submit" className="w-full bg-white text-black hover:bg-cyan-400 font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-cyan-500/20 flex items-center justify-center gap-2">
@@ -905,10 +1030,46 @@ export default function Admin() {
                                                     value={projectTags} onChange={e => setProjectTags(e.target.value)} required placeholder="React, AI" />
                                             </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Project Link (Site URL)</label>
-                                            <input className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-cyan-500 focus:outline-none transition-all"
-                                                value={projectLink} onChange={e => setProjectLink(e.target.value)} placeholder="https://example.com" />
+                                        <div className="space-y-4 bg-white/5 p-4 rounded-xl border border-white/5">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Additional Links</h4>
+                                                <button type="button" onClick={addAdditionalLink} className="flex items-center gap-1 text-[10px] bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500 hover:text-black px-2 py-1 rounded-full transition-all font-bold">
+                                                    <Plus className="w-3 h-3" /> Add Link
+                                                </button>
+                                            </div>
+                                            
+                                            {additionalLinks.length === 0 && (
+                                                <div className="text-center py-4 border-2 border-dashed border-white/5 rounded-lg">
+                                                    <p className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest">No additional links</p>
+                                                </div>
+                                            )}
+
+                                            <div className="space-y-3">
+                                                {additionalLinks.map((link, index) => (
+                                                    <div key={index} className="grid grid-cols-1 md:grid-cols-[1fr,1fr,1fr,auto] gap-3 p-3 bg-black/40 rounded-lg border border-white/5 relative group">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-bold text-zinc-500 uppercase">URL</label>
+                                                            <input className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs text-white focus:border-cyan-500 focus:outline-none transition-all"
+                                                                value={link.url} onChange={e => updateAdditionalLink(index, 'url', e.target.value)} placeholder="https://..." />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-bold text-zinc-500 uppercase">Label (ES)</label>
+                                                            <input className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs text-white focus:border-cyan-500 focus:outline-none transition-all"
+                                                                value={link.label} onChange={e => updateAdditionalLink(index, 'label', e.target.value)} placeholder="Ver..." />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-bold text-zinc-500 uppercase">Label (EN)</label>
+                                                            <input className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs text-white focus:border-cyan-500 focus:outline-none transition-all"
+                                                                value={link.label_en} onChange={e => updateAdditionalLink(index, 'label_en', e.target.value)} placeholder="View..." />
+                                                        </div>
+                                                        <div className="flex items-end">
+                                                            <button type="button" onClick={() => removeAdditionalLink(index)} className="p-2 text-zinc-500 hover:text-red-500 transition-colors">
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                         <button type="submit" className="w-full bg-white text-black hover:bg-cyan-400 font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-cyan-500/20 flex items-center justify-center gap-2">
                                             {editingId ? <><Save className="w-4 h-4" /> Update Project</> : <><Plus className="w-4 h-4" /> Add Project</>}

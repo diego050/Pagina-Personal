@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
-from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form, Response
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form, Response, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session, select
@@ -16,6 +16,8 @@ from email.mime.multipart import MIMEMultipart
 from PIL import Image
 import bleach
 import html
+from collections import defaultdict
+import time
 
 from database import create_db_and_tables, get_session
 from models import User, Project, Article, SiteContent, MediaNode
@@ -55,6 +57,26 @@ def sanitize_text(text: str, mode: str = "strict") -> str:
         return bleach.clean(text, tags=allowed_tags, attributes=allowed_attrs, strip=True)
     
     return text
+    
+# --- Bot & Spam Protection ---
+# Simple in-memory rate limiter (resets on server restart)
+# In a production environment with high traffic, use Redis
+ip_request_counts = defaultdict(list)
+
+def check_rate_limit(ip: str, limit: int = 5, window: int = 60):
+    """
+    Allows 'limit' requests per 'window' seconds per IP.
+    """
+    now = time.time()
+    # Filter out old requests
+    ip_request_counts[ip] = [t for t in ip_request_counts[ip] if now - t < window]
+    
+    if len(ip_request_counts[ip]) >= limit:
+        return False
+    
+    ip_request_counts[ip].append(now)
+    return True
+# ------------------------
 # ------------------------
 
 app = FastAPI()
@@ -483,7 +505,16 @@ def update_content(key: str, content_update: SiteContentUpdate, current_user: Us
 
 # NEW: Contact Form Endpoint
 @app.post("/contact")
-async def contact_form(req: ContactRequest):
+async def contact_form(req: ContactRequest, request: Request, session: Session = Depends(get_session)):
+    # 1. Honeypot check (hidden field bots fill)
+    if req.honeypot:
+        print(f"Honeypot triggered! Bot detected from IP: {request.client.host}")
+        return {"status": "success", "message": "Message sent (ignored)"}
+
+    # 2. Rate Limit (3 messages per 10 minutes)
+    if not check_rate_limit(request.client.host, limit=3, window=600):
+        raise HTTPException(status_code=429, detail="Too many messages. Please try again later.")
+    
     # Retrieve env settings
     smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
@@ -521,7 +552,16 @@ async def contact_form(req: ContactRequest):
         raise HTTPException(status_code=500, detail="Failed to send email")
 
 @app.post("/subscribe")
-async def subscribe_newsletter(req: NewsletterRequest):
+async def subscribe_newsletter(req: NewsletterRequest, request: Request):
+    # 1. Honeypot check
+    if req.honeypot:
+        print(f"Newsletter Honeypot triggered from IP: {request.client.host}")
+        return {"status": "success", "message": "Subscribed (ignored)"}
+
+    # 2. Rate Limit (5 subscriptions per hour)
+    if not check_rate_limit(request.client.host, limit=5, window=3600):
+        raise HTTPException(status_code=429, detail="Too many subscription attempts. Please try again later.")
+    
     smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
     smtp_user = os.getenv("SMTP_USER")

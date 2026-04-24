@@ -21,9 +21,12 @@ class Project(SQLModel, table=True):
     content_en: Optional[str] = None
     secondary_link_url: Optional[str] = None
     secondary_link_label: Optional[str] = None
+    secondary_link_label_en: Optional[str] = None
+    additional_links: Optional[str] = None # JSON string of [{url, label, label_en}]
     image_alt: Optional[str] = None
     image_width: Optional[int] = None
     image_height: Optional[int] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class Article(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -31,6 +34,9 @@ class Article(SQLModel, table=True):
     slug: str = Field(index=True, unique=True)
     excerpt: Optional[str] = None
     content: str # Markdown content
+    title_en: Optional[str] = None
+    excerpt_en: Optional[str] = None
+    content_en: Optional[str] = None
     image_url: Optional[str] = None
     category: str = Field(default="General")
     tags: Optional[str] = None # Comma separated
@@ -39,6 +45,7 @@ class Article(SQLModel, table=True):
     image_alt: Optional[str] = None
     image_width: Optional[int] = None
     image_height: Optional[int] = None
+    additional_links: Optional[str] = None # JSON string of [{url, label, label_en}]
 
 class SiteContent(SQLModel, table=True):
     key: str = Field(primary_key=True)

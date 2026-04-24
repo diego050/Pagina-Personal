@@ -6,7 +6,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 const NewsletterSection: React.FC = () => {
     const { t } = useLanguage();
-    const [formData, setFormData] = useState({ name: '', email: '' });
+    const [formData, setFormData] = useState({ name: '', email: '', honeypot: '' });
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [showToast, setShowToast] = useState(false);
 
@@ -30,10 +30,10 @@ const NewsletterSection: React.FC = () => {
         e.preventDefault();
         setStatus('loading');
         try {
-            await subscribe(formData.name, formData.email);
+            await subscribe(formData.name, formData.email, formData.honeypot);
             setStatus('success');
             setShowToast(true);
-            setFormData({ name: '', email: '' });
+            setFormData({ name: '', email: '', honeypot: '' });
             
             setTimeout(() => {
                 setShowToast(false);
@@ -138,6 +138,17 @@ const NewsletterSection: React.FC = () => {
                                                 value={formData.email}
                                                 onChange={e => setFormData({ ...formData, email: e.target.value })}
                                                 className="w-full bg-zinc-950/40 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-0 focus:border-primary/50 focus:bg-zinc-950/60 transition-colors shadow-inner"
+                                            />
+                                        </div>
+                                        {/* Honeypot field - Hidden from users */}
+                                        <div className="hidden" aria-hidden="true">
+                                            <input
+                                                type="text"
+                                                name="contact_me_please_dont_fill"
+                                                tabIndex={-1}
+                                                autoComplete="off"
+                                                value={formData.honeypot}
+                                                onChange={e => setFormData({ ...formData, honeypot: e.target.value })}
                                             />
                                         </div>
                                     </div>

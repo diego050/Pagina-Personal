@@ -322,7 +322,7 @@ export default function Home() {
 
                                         {/* Content */}
                                         <div className="p-6">
-                                            <h3 className="text-xl font-bold text-white mb-3 group-hover:text-primary transition-colors">
+                                            <h3 className="text-xl font-bold text-white mb-3 group-hover:text-primary transition-colors leading-snug pb-1">
                                                 {displayTitle}
                                             </h3>
                                             <p className="text-zinc-400 text-sm mb-6 line-clamp-2 leading-relaxed">

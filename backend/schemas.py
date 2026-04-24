@@ -13,6 +13,9 @@ class ArticleCreate(BaseModel):
     title: str
     excerpt: Optional[str] = None
     content: str
+    title_en: Optional[str] = None
+    excerpt_en: Optional[str] = None
+    content_en: Optional[str] = None
     slug: str
     image_url: Optional[str] = None
     category: str = "General"
@@ -21,11 +24,15 @@ class ArticleCreate(BaseModel):
     image_alt: Optional[str] = None
     image_width: Optional[int] = None
     image_height: Optional[int] = None
+    additional_links: Optional[str] = None
 
 class ArticleUpdate(BaseModel):
     title: Optional[str] = None
     excerpt: Optional[str] = None
     content: Optional[str] = None
+    title_en: Optional[str] = None
+    excerpt_en: Optional[str] = None
+    content_en: Optional[str] = None
     slug: Optional[str] = None
     image_url: Optional[str] = None
     category: Optional[str] = None
@@ -34,6 +41,7 @@ class ArticleUpdate(BaseModel):
     image_alt: Optional[str] = None
     image_width: Optional[int] = None
     image_height: Optional[int] = None
+    additional_links: Optional[str] = None
 
 class ArticleRead(BaseModel):
     id: int
@@ -41,6 +49,9 @@ class ArticleRead(BaseModel):
     slug: str
     excerpt: Optional[str] = None
     content: str
+    title_en: Optional[str] = None
+    excerpt_en: Optional[str] = None
+    content_en: Optional[str] = None
     image_url: Optional[str] = None
     category: str
     tags: Optional[str] = None
@@ -49,6 +60,7 @@ class ArticleRead(BaseModel):
     image_alt: Optional[str] = None
     image_width: Optional[int] = None
     image_height: Optional[int] = None
+    additional_links: Optional[str] = None
 
 class ProjectCreate(BaseModel):
     title: str
@@ -63,9 +75,12 @@ class ProjectCreate(BaseModel):
     content_en: Optional[str] = None
     secondary_link_url: Optional[str] = None
     secondary_link_label: Optional[str] = None
+    secondary_link_label_en: Optional[str] = None
+    additional_links: Optional[str] = None
     image_alt: Optional[str] = None
     image_width: Optional[int] = None
     image_height: Optional[int] = None
+    created_at: Optional[datetime] = None
 
 class ProjectUpdate(BaseModel):
     title: Optional[str] = None
@@ -80,9 +95,12 @@ class ProjectUpdate(BaseModel):
     content_en: Optional[str] = None
     secondary_link_url: Optional[str] = None
     secondary_link_label: Optional[str] = None
+    secondary_link_label_en: Optional[str] = None
+    additional_links: Optional[str] = None
     image_alt: Optional[str] = None
     image_width: Optional[int] = None
     image_height: Optional[int] = None
+    created_at: Optional[datetime] = None
 
 class ProjectRead(BaseModel):
     id: int
@@ -98,9 +116,12 @@ class ProjectRead(BaseModel):
     content_en: Optional[str] = None
     secondary_link_url: Optional[str] = None
     secondary_link_label: Optional[str] = None
+    secondary_link_label_en: Optional[str] = None
+    additional_links: Optional[str] = None
     image_alt: Optional[str] = None
     image_width: Optional[int] = None
     image_height: Optional[int] = None
+    created_at: datetime
 
 class SiteContentBase(BaseModel):
     value: str
@@ -134,7 +155,9 @@ class ContactRequest(BaseModel):
     name: str
     email: str
     message: str
+    honeypot: Optional[str] = None
 
 class NewsletterRequest(BaseModel):
     name: str
     email: str
+    honeypot: Optional[str] = None

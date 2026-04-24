@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Calendar } from 'lucide-react';
+import { ArrowLeft, Calendar, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import api from '../api';
@@ -12,14 +12,19 @@ import { useLanguage } from '../context/LanguageContext';
 interface Article {
     id: number;
     title: string;
+    title_en?: string;
     slug: string;
+    excerpt?: string;
+    excerpt_en?: string;
     content: string;
+    content_en?: string;
     image_url?: string;
     created_at: string;
     category: string;
     image_alt?: string;
     image_width?: number;
     image_height?: number;
+    additional_links?: string;
 }
 
 export default function Article() {
@@ -47,13 +52,17 @@ export default function Article() {
     const backLink = isProject ? STATIC_ROUTES.projects[language] : STATIC_ROUTES.blog[language];
     const backText = isProject ? t('backToProjects') : t('backToBlog'); // Assuming translation keys exist or fallback
 
+    const displayTitle = (language === 'en' && article.title_en) ? article.title_en : article.title;
+    const displayContent = (language === 'en' && article.content_en) ? article.content_en : article.content;
+    const displayExcerpt = (language === 'en' && article.excerpt_en) ? article.excerpt_en : (article.excerpt || article.content.substring(0, 150) + "...");
+
     return (
         <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <SEO
-                title={article.title}
-                description={article.content.substring(0, 150) + "..."}
+                title={displayTitle}
+                description={displayExcerpt}
                 image={article.image_url}
-                imageAlt={article.image_alt || article.title}
+                imageAlt={article.image_alt || displayTitle}
                 imageWidth={article.image_width}
                 imageHeight={article.image_height}
                 type="article"
@@ -75,6 +84,29 @@ export default function Article() {
                             {article.category}
                         </span>
                     )}
+                </div>
+
+                <div className="mt-8 flex flex-wrap gap-4">
+                    {/* Render dynamic additional links list */}
+                    {article.additional_links && (() => {
+                        try {
+                            const links = JSON.parse(article.additional_links);
+                            if (!Array.isArray(links)) return null;
+                            return links.map((link: any, i: number) => (
+                                <a key={i} href={link.url} target="_blank" rel="noopener noreferrer"
+                                    className={`flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-300 active:scale-95 hover:-translate-y-1 hover:shadow-xl ${
+                                        i === 0 
+                                            ? 'bg-primary text-black hover:bg-accent hover:shadow-primary/20' 
+                                            : 'bg-white/10 text-white border border-white/20 hover:bg-white/20 hover:shadow-white/5'
+                                    }`}>
+                                    <Globe className="w-4 h-4" />
+                                    {language === 'en' && link.label_en ? link.label_en : (link.label || 'Link')}
+                                </a>
+                            ));
+                        } catch (e) {
+                            return null;
+                        }
+                    })()}
                 </div>
             </header>
 
@@ -99,7 +131,7 @@ export default function Article() {
                         img: ResponsiveImage
                     }}
                 >
-                    {article.content}
+                    {displayContent}
                 </ReactMarkdown>
             </div>
         </article>

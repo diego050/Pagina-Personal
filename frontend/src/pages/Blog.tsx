@@ -8,8 +8,12 @@ import SEO from '../components/SEO';
 interface Article {
     id: number;
     title: string;
+    title_en?: string;
     slug: string;
+    excerpt?: string;
+    excerpt_en?: string;
     content: string;
+    content_en?: string;
     created_at: string;
     is_published: boolean;
     category: string;
@@ -33,10 +37,15 @@ export default function Blog() {
             .catch(err => console.error(err));
     }, []);
 
-    const filteredArticles = articles.filter(article =>
-        article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        article.content.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredArticles = articles.filter(article => {
+        const title = (language === 'en' && article.title_en) ? article.title_en : article.title;
+        const content = (language === 'en' && article.content_en) ? article.content_en : article.content;
+        const excerpt = (language === 'en' && article.excerpt_en) ? article.excerpt_en : (article.excerpt || "");
+        
+        return title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+               content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+               excerpt.toLowerCase().includes(searchQuery.toLowerCase());
+    });
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12">
@@ -76,6 +85,8 @@ export default function Blog() {
                     filteredArticles.map((article) => {
                         const articlePath = `/blog/${article.slug}`;
                         const localizedPath = language === 'en' ? `/en${articlePath}` : articlePath;
+                        const displayTitle = (language === 'en' && article.title_en) ? article.title_en : article.title;
+                        const displayExcerpt = (language === 'en' && article.excerpt_en) ? article.excerpt_en : (article.excerpt || article.content.substring(0, 150) + "...");
 
                         return (
                             <motion.article
@@ -95,11 +106,11 @@ export default function Blog() {
                                 </div>
                                 <h2 className="text-2xl font-bold text-white mb-3">
                                     <Link to={localizedPath} className="hover:text-primary transition-colors">
-                                        {article.title}
+                                        {displayTitle}
                                     </Link>
                                 </h2>
                                 <p className="text-zinc-400 mb-6 line-clamp-2">
-                                    {article.content.substring(0, 150)}...
+                                    {displayExcerpt}
                                 </p>
                                 <Link
                                     to={localizedPath}
