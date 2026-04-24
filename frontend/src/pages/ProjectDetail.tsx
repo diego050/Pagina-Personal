@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, Link, useLocation } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, Globe } from 'lucide-react';
+import { ArrowLeft, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import api from '../api';
