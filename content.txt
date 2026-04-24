@@ -1,0 +1,46 @@
+
+# UTEC Ventures: Estructuración de Datos
+
+En el mundo del Venture Capital, la información es el activo más valioso después del capital. El reto en **UTEC Ventures** no era la falta de datos, sino la falta de una estructura que permitiera tomar decisiones estratégicas en tiempo real.
+
+**UTEC Ventures** gestionaba la información histórica de su portafolio dispersa en múltiples archivos de Excel, correos y chats. No existía una "Fuente Única de Verdad" (Single Source of Truth).
+
+![Problema de Datos](/static/uploads/projects/utec-problem.webp)
+
+## El Problema:
+*   **Ineficiencia Operativa:** Generar un reporte de estado del portafolio tomaba entre 30 a 60 minutos de trabajo manual de limpieza y consolidación.
+*   **Datos No Estructurados:** El 80% de los registros carecían de campos estandarizados. Tener métricas mezcladas (ej. unos reportaban en Q1, otros mensual) impedía realizar análisis comparativos o filtrar por sectores de manera ágil.
+
+## Mi Rol: Ingeniería de Datos y Visualización
+
+Diseñé e implementé una solución de Inteligencia de Negocios (BI) "Serverless" y de bajo costo utilizando el ecosistema de Google, dividiendo el proyecto en dos capas:
+
+### 1. Ingeniería y Gobernanza de Datos
+El primer paso fue construir los cimientos. No podíamos visualizar datos si estos no eran confiables.
+
+*   **Modelado Relacional en Sheets:** Estructuré una base de datos con 10 tablas interconectadas, abandonando el formato de "hoja de cálculo plana" para permitir escalabilidad.
+*   **Diccionario de Métricas:** Implementé una capa de estandarización (Data Governance) para normalizar indicadores financieros heterogéneos.
+*   **ETL con Apps Script:** Desarrollé scripts en Google Apps Script para automatizar la limpieza, validación y transformación de datos crudos (Raw Data) a métricas normalizadas listas para el análisis.
+
+![ETL con Apps Script](/static/uploads/projects/utec-etl.webp)
+![Normalización de Datos](/static/uploads/projects/utec-data.webp)
+
+### 2. Visualización Estratégica (Frontend)
+Para la capa de usuario, pivoté de los gráficos nativos de Excel a **Looker Studio** para mejorar la experiencia de usuario (UX) y la interactividad.
+
+*   **Dashboard Interactivo:** Creé tableros dinámicos que permiten al equipo directivo filtrar el portafolio por sector (SaaS, Biotech, etc.), año de inversión o etapa de madurez.
+*   **Análisis Granular:** Diseñé vistas específicas para métricas clave como MRR (Ingresos Recurrentes), Runway y Valoración, permitiendo comparar el rendimiento entre modelos de negocio distintos (B2B vs B2C).
+
+## 🚀 Impacto y Resultados
+La transformación de la gestión de datos generó eficiencias operativas inmediatas para el fondo:
+
+*   **Optimización del Tiempo:** Reducción del 90% en el tiempo de generación de reportes. Consultas complejas que tomaban una hora ahora se resuelven en menos de 5 minutos.
+*   **Toma de Decisiones Ágil:** El equipo de inversión ahora tiene acceso instantáneo a tendencias de crecimiento y salud financiera del portafolio sin depender de procesamiento manual.
+*   **Benchmarking Real:** Gracias a la normalización, ahora es posible comparar el rendimiento de las startups mediante mapas de calor y tablas dinámicas.
+
+![Dashboard de Benchmarking](/static/uploads/projects/utec-benchmark.webp)
+
+## 🛠 Tech Stack
+*   **Base de Datos:** Google Sheets (Modelo Relacional)
+*   **ETL & Scripting:** Google Apps Script (JavaScript)
+*   **Visualización (BI):** Looker Studio

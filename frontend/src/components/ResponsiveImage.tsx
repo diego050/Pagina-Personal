@@ -56,31 +56,6 @@ export default function ResponsiveImage({
     const basePath = lastDotIndex !== -1 ? normalizedSrc.substring(0, lastDotIndex) : normalizedSrc;
     const ext = lastDotIndex !== -1 ? normalizedSrc.substring(lastDotIndex).toLowerCase() : '';
 
-    // If it's webp, we provide srcSet now that we ensured variants exist
-    if (ext === '.webp') {
-        const srcSet = `
-            ${resolveUrl(`${basePath}-sm.webp`)} 400w,
-            ${resolveUrl(`${basePath}-md.webp`)} 800w,
-            ${resolveUrl(`${basePath}-lg.webp`)} 1200w,
-            ${resolveUrl(normalizedSrc)} 1600w
-        `;
-        
-        return (
-            <picture className={`${className} block overflow-hidden`}>
-                <source srcSet={srcSet} sizes={sizes} type="image/webp" />
-                <img 
-                    src={resolveUrl(normalizedSrc)} 
-                    alt={alt} 
-                    loading={lazy ? "lazy" : "eager"} 
-                    width={width} 
-                    height={height} 
-                    className="w-full h-auto block" 
-                    sizes={sizes}
-                    {...props} 
-                />
-            </picture>
-        );
-    }
 
     return (
         <img 
