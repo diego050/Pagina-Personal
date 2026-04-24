@@ -24,6 +24,8 @@ interface Project {
     secondary_link_label_en?: string;
     additional_links?: string;
     image_alt?: string;
+    link_url?: string;
+    secondary_link_label?: string;
     image_width?: number;
     image_height?: number;
 }
@@ -104,25 +106,56 @@ export default function ProjectDetail() {
                 </p>
 
                 <div className="flex flex-wrap justify-center gap-4">
-                    {/* Render dynamic additional links list */}
-                    {project.additional_links && (() => {
-                        try {
-                            const links = JSON.parse(project.additional_links);
-                            if (!Array.isArray(links)) return null;
-                            return links.map((link: any, i: number) => (
-                                <a key={i} href={link.url} target="_blank" rel="noopener noreferrer"
-                                    className={`flex items-center gap-2 px-8 py-3 rounded-full font-bold transition-all duration-300 active:scale-95 hover:-translate-y-1 hover:shadow-xl ${
-                                        i === 0 
-                                            ? 'bg-primary text-black hover:bg-accent hover:shadow-primary/20' 
-                                            : 'bg-white/10 text-white border border-white/20 hover:bg-white/20 hover:shadow-white/5'
-                                    }`}>
-                                    <Globe className="w-5 h-5" />
-                                    {language === 'en' && link.label_en ? link.label_en : (link.label || 'Link')}
-                                </a>
-                            ));
-                        } catch (e) {
-                            return null;
+                    {(() => {
+                        const allLinks = [];
+                        
+                        // Add legacy primary link if exists
+                        if (project.link_url) {
+                            allLinks.push({
+                                url: project.link_url,
+                                label: t('visitSite'),
+                                label_en: 'Visit Site'
+                            });
                         }
+                        
+                        // Add legacy secondary link if exists
+                        if (project.secondary_link_url) {
+                            allLinks.push({
+                                url: project.secondary_link_url,
+                                label: project.secondary_link_label || 'Link Secundario',
+                                label_en: project.secondary_link_label_en || 'Secondary Link'
+                            });
+                        }
+                        
+                        // Add dynamic additional links
+                        if (project.additional_links) {
+                            try {
+                                const parsedLinks = JSON.parse(project.additional_links);
+                                if (Array.isArray(parsedLinks)) {
+                                    allLinks.push(...parsedLinks);
+                                }
+                            } catch (e) {
+                                // Ignore parse error
+                            }
+                        }
+
+                        if (allLinks.length === 0) return null;
+
+                        // Deduplicate by URL to prevent showing the same button twice
+                        // if user migrated data to additional_links
+                        const uniqueLinks = Array.from(new Map(allLinks.map(item => [item.url, item])).values());
+
+                        return uniqueLinks.map((link: any, i: number) => (
+                            <a key={i} href={link.url} target="_blank" rel="noopener noreferrer"
+                                className={`flex items-center gap-2 px-8 py-3 rounded-full font-bold transition-all duration-300 active:scale-95 hover:-translate-y-1 hover:shadow-xl ${
+                                    i === 0 
+                                        ? 'bg-primary text-black hover:bg-accent hover:shadow-primary/20' 
+                                        : 'bg-white/10 text-white border border-white/20 hover:bg-white/20 hover:shadow-white/5'
+                                }`}>
+                                <Globe className="w-5 h-5" />
+                                {language === 'en' && link.label_en ? link.label_en : (link.label || 'Link')}
+                            </a>
+                        ));
                     })()}
                 </div>
             </header>
