@@ -150,6 +150,9 @@ async def upload_image(file: UploadFile = File(...), path: str = Form(""), sessi
                         new_h = int(float(height) * float(ratio))
                         resized_img = img.resize((max_w, new_h), Image.Resampling.LANCZOS)
                         resized_img.save(os.path.join(target_dir, f"{filename}-{suffix}.webp"), "WEBP", quality=80)
+                    else:
+                        # Ensure the variant file always exists to prevent frontend 404 errors
+                        img.save(os.path.join(target_dir, f"{filename}-{suffix}.webp"), "WEBP", quality=80)
                 
                 rel_path = os.path.relpath(file_path, "static/uploads").replace("\\", "/")
                 
