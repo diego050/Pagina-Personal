@@ -28,7 +28,9 @@ jobs:
             exit 1
           fi
 
-          url="https://api.hostinger.com/v1/vps/virtual-machines/${VM_ID}/docker/projects/${PROJECT_NAME}/update"
+          # Host is developers.hostinger.com/api -- api.hostinger.com does not
+          # resolve (Cloudflare 530/1016). Path has no "/projects/" segment.
+          url="https://developers.hostinger.com/api/vps/v1/virtual-machines/${VM_ID}/docker/${PROJECT_NAME}/update"
           echo "POST $url"
 
           # -w appends the status code on its own line so we can inspect it,
@@ -45,7 +47,13 @@ jobs:
           echo "$body"
 
           if [ "$status" -ge 400 ]; then
-            echo "::error::Hostinger API returned HTTP $status for project '${PROJECT_NAME}'"
+            case "$status" in
+              401|403) hint="HOSTINGER_API_TOKEN is invalid, expired, or lacks VPS scope" ;;
+              404)     hint="project '${PROJECT_NAME}' not found on VM ${VM_ID} (check: docker compose ls)" ;;
+              5*)      hint="Hostinger API side error -- retry, or check status.hostinger.com" ;;
+              *)       hint="see the response body above" ;;
+            esac
+            echo "::error::Hostinger API returned HTTP $status -- $hint"
             exit 1
           fi
 
