@@ -40,6 +40,21 @@ export const certifications = [
         "category": "Análisis de Datos",
         "items": [
             {
+                "title": "Meta Marketing Analytics (Certificado Profesional)",
+                "issuer": "Meta | Coursera",
+                "year": "2026",
+                "description": "Programa profesional de Meta en analítica de marketing: SQL y hojas de cálculo, Python, estadística y métodos de medición para optimizar campañas con datos.",
+                "color": "cyan",
+                "zipName": "meta-marketing-analytics-certificados",
+                "files": [
+                    { "name": "Marketing Analytics with Meta", "href": "/certificates/coursera-marketing/Marketing-Analytics-with-Meta.pdf" },
+                    { "name": "Data Analysis with Spreadsheets and SQL", "href": "/certificates/coursera-marketing/Data-Analysis-with-Spreadsheets-and-SQL.pdf" },
+                    { "name": "Python Data Analytics", "href": "/certificates/coursera-marketing/Python-Data-Analytics.pdf" },
+                    { "name": "Statistics Foundations", "href": "/certificates/coursera-marketing/Statistics-Foundations.pdf" },
+                    { "name": "Data Analytics Methods for Marketing", "href": "/certificates/coursera-marketing/Data-Analytics-Methods-for-Marketing.pdf" }
+                ]
+            },
+            {
                 "title": "Power BI Data Analyst",
                 "issuer": "Santander | Open Academy",
                 "year": "2025",

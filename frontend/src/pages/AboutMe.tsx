@@ -1,12 +1,25 @@
 import { motion } from 'framer-motion';
-import { Download, Mail, Briefcase, GraduationCap, Award, Calendar, Building2 } from 'lucide-react';
+import { Download, Mail, Briefcase, GraduationCap, Award, Calendar, Building2, FileArchive, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import SEO from '../components/SEO';
 import ResponsiveImage from '../components/ResponsiveImage';
 import ContactModal from '../components/ContactModal';
+import { downloadFilesAsZip } from '../utils/downloadZip';
 import api from '../api';
+
+const slugify = (text: string) =>
+    text
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'certificados';
+
+interface CertificationFile {
+    name: string;
+    href: string;
+}
 
 interface CertificationItem {
     title: string;
@@ -17,6 +30,9 @@ interface CertificationItem {
     color: string;
     badge?: string;
     href?: string;
+    /** Multi-certificate programs: listed on the card and downloaded together as a .zip */
+    files?: CertificationFile[];
+    zipName?: string;
 }
 
 interface CertificationCategory {
@@ -239,6 +255,8 @@ export default function AboutMe() {
                                                     color={cert.color}
                                                     href={cert.href}
                                                     badge={cert.badge}
+                                                    files={cert.files}
+                                                    zipName={cert.zipName}
                                                 />
                                             ))}
                                         </div>
@@ -339,9 +357,14 @@ interface CertificationCardProps {
     color: string;
     badge?: string;
     href?: string;
+    files?: CertificationFile[];
+    zipName?: string;
 }
 
-function CertificationCard({ title, issuer, year, description, icon, color, badge, href }: CertificationCardProps) {
+function CertificationCard({ title, issuer, year, description, icon, color, badge, href, files, zipName }: CertificationCardProps) {
+    const { t } = useLanguage();
+    const [zipStatus, setZipStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+
     const colorClasses: any = {
         blue: "bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20",
         green: "bg-green-500/10 text-green-400 group-hover:bg-green-500/20",
@@ -351,8 +374,27 @@ function CertificationCard({ title, issuer, year, description, icon, color, badg
 
     const selectedColor = colorClasses[color] || colorClasses.blue;
 
-    const Component = href ? motion.a : motion.div;
-    const props = href ? { href, target: "_blank", rel: "noopener noreferrer", download: true } : {};
+    const groupedFiles = files?.filter(f => f?.href) ?? [];
+    const isGrouped = groupedFiles.length > 0;
+
+    const handleDownloadZip = async () => {
+        if (zipStatus === 'loading') return;
+        setZipStatus('loading');
+        try {
+            await downloadFilesAsZip(groupedFiles, zipName || slugify(title));
+            setZipStatus('idle');
+        } catch (err) {
+            console.error('Failed to build certificates zip', err);
+            setZipStatus('error');
+        }
+    };
+
+    // Grouped programs get a card that lists every certificate and zips them on download.
+    // Single certificates keep the original behaviour: the whole card is the download link.
+    const isLink = !isGrouped && !!href;
+    const Component = isLink ? motion.a : motion.div;
+    const props = isLink ? { href, target: "_blank", rel: "noopener noreferrer", download: true } : {};
+    const showDownloadIcon = isLink || isGrouped;
 
     return (
         <Component
@@ -361,16 +403,16 @@ function CertificationCard({ title, issuer, year, description, icon, color, badg
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            className={`glass-panel rounded-xl p-6 hover:border-white/20 transition-all group h-full flex flex-col ${href ? 'cursor-pointer' : ''}`}
+            className={`glass-panel rounded-xl p-6 hover:border-white/20 transition-all group h-full flex flex-col ${isLink ? 'cursor-pointer' : ''}`}
         >
             <div className="flex justify-between items-start mb-4">
                 <div className={`p-2 rounded-lg transition-colors ${selectedColor}`}>
                     {icon}
                 </div>
                 <div className="flex gap-2 items-center">
-                    {href && (
+                    {showDownloadIcon && (
                         <div className="p-1.5 rounded-md bg-white/5 text-white/50 group-hover:text-cyan-400 group-hover:bg-cyan-500/10 transition-colors">
-                            <Download className="w-3.5 h-3.5" />
+                            {isGrouped ? <FileArchive className="w-3.5 h-3.5" /> : <Download className="w-3.5 h-3.5" />}
                         </div>
                     )}
                     {badge && (
@@ -381,7 +423,53 @@ function CertificationCard({ title, issuer, year, description, icon, color, badg
             </div>
             <h3 className="text-white font-bold mb-2 group-hover:text-cyan-400 transition-colors leading-snug pb-1">{title}</h3>
             <p className="text-xs text-zinc-500 uppercase tracking-wide mb-3">{issuer}</p>
-            <p className="text-sm text-zinc-400 leading-relaxed mt-auto">{description}</p>
+            <p className={`text-sm text-zinc-400 leading-relaxed ${isGrouped ? '' : 'mt-auto'}`}>{description}</p>
+
+            {isGrouped && (
+                <div className="mt-auto pt-4 border-t border-white/5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">
+                        {t('certIncludedCourses')} ({groupedFiles.length})
+                    </p>
+                    <ul className="space-y-1.5 mb-4">
+                        {groupedFiles.map((file, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-zinc-300">
+                                <FileText className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-zinc-500" aria-hidden="true" />
+                                <a
+                                    href={file.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="leading-snug hover:text-cyan-400 transition-colors"
+                                >
+                                    {file.name}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+
+                    <button
+                        type="button"
+                        onClick={handleDownloadZip}
+                        disabled={zipStatus === 'loading'}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 hover:border-cyan-500/40 text-cyan-400 text-sm font-semibold transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                        {zipStatus === 'loading' ? (
+                            <>
+                                <span className="w-4 h-4 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin" />
+                                {t('certPreparingZip')}
+                            </>
+                        ) : (
+                            <>
+                                <FileArchive className="w-4 h-4" />
+                                {t('certDownloadAllZip')}
+                            </>
+                        )}
+                    </button>
+
+                    {zipStatus === 'error' && (
+                        <p className="text-red-400 text-xs text-center mt-2">{t('certZipError')}</p>
+                    )}
+                </div>
+            )}
         </Component>
     );
 }

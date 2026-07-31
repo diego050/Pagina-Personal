@@ -2,6 +2,11 @@ services:
   backend:
     build: ./backend
     restart: always
+    # Secrets (RESEND_API_KEY, RESEND_FROM, CONTACT_RECIPIENT) come from this file.
+    # It is gitignored, so it must be created on the server before deploying.
+    env_file:
+      - ./backend/.env
+    # Prod-specific overrides. `environment` wins over `env_file` in Compose.
     environment:
       - DATABASE_URL=sqlite:////app/data/database.db
       - SECRET_KEY=diego-super-secret-key-123
@@ -10,11 +15,6 @@ services:
       - ADMIN_USERNAME=admin
       - ADMIN_PASSWORD=admin
       - FRONTEND_URL=https://dbtech.cloud
-      - SMTP_SERVER=smtp.gmail.com
-      - SMTP_PORT=587
-      - SMTP_USER=dbtech048@gmail.com
-      - SMTP_PASSWORD=hjxrmseydoshqykx
-      - CONTACT_RECIPIENT=dbtech048@gmail.com
     volumes:
       - ./backend/data:/app/data
     networks:

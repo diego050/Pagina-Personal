@@ -6,13 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session, select
 from typing import List
+import re
 import shutil
 import uuid
 from datetime import timedelta
-import smtplib
-import ssl
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import resend
 from PIL import Image
 import bleach
 import html
@@ -77,6 +75,55 @@ def check_rate_limit(ip: str, limit: int = 5, window: int = 60):
     ip_request_counts[ip].append(now)
     return True
 # ------------------------
+
+# --- Email delivery (Resend) ---
+# Default sender works without a verified domain, but Resend will only deliver it
+# to the email address that owns the Resend account. Set RESEND_FROM to an address
+# on a verified domain to send anywhere.
+DEFAULT_RESEND_FROM = "Portfolio <onboarding@resend.dev>"
+
+
+def send_email(subject: str, html: str, reply_to: str | None = None) -> bool:
+    """
+    Sends a transactional email through Resend.
+
+    Returns True when Resend accepted the message, False when the integration is not
+    configured (missing API key or recipient) so callers can degrade gracefully
+    instead of failing the request. Raises on an actual Resend/API failure.
+    """
+    api_key = os.getenv("RESEND_API_KEY")
+    recipient = os.getenv("CONTACT_RECIPIENT")
+    sender = os.getenv("RESEND_FROM", DEFAULT_RESEND_FROM)
+
+    if not api_key or not recipient:
+        return False
+
+    resend.api_key = api_key
+
+    params = {
+        "from": sender,
+        "to": [recipient],
+        "subject": subject,
+        "html": html,
+    }
+    if reply_to:
+        params["reply_to"] = reply_to
+
+    resend.Emails.send(params)
+    return True
+
+
+def as_html_paragraph(text: str) -> str:
+    """Sanitized text is already HTML-escaped; only line breaks need restoring."""
+    return text.replace("\n", "<br>")
+
+
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def is_valid_email(email: str) -> bool:
+    """Guards Reply-To so a malformed address can't make Resend reject the whole send."""
+    return bool(email) and bool(EMAIL_RE.match(email.strip()))
 # ------------------------
 
 app = FastAPI()
@@ -518,40 +565,33 @@ async def contact_form(req: ContactRequest, request: Request, session: Session =
     if not check_rate_limit(request.client.host, limit=3, window=600):
         raise HTTPException(status_code=429, detail="Too many messages. Please try again later.")
     
-    # Retrieve env settings
-    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER")
-    smtp_pass = os.getenv("SMTP_PASSWORD")
-    recipient = os.getenv("CONTACT_RECIPIENT")
-
     try:
         # Sanitize contact inputs strictly
         clean_name = sanitize_text(req.name)
         clean_email = sanitize_text(req.email)
         clean_message = sanitize_text(req.message)
 
-        if not smtp_user or not smtp_pass or not recipient:
+        html_body = f"""
+            <h2>New contact message</h2>
+            <p><strong>Name:</strong> {clean_name}</p>
+            <p><strong>Email:</strong> {clean_email}</p>
+            <hr>
+            <p>{as_html_paragraph(clean_message)}</p>
+        """
+
+        sent = send_email(
+            subject=f"New Contact from {clean_name} - DBtech Portfolio",
+            html=html_body,
+            reply_to=req.email if is_valid_email(req.email) else None,
+        )
+
+        if not sent:
             print(f"Contact form received (Simulated): Name: {clean_name}, Email: {clean_email}, Msg: {clean_message}")
             return {"status": "success", "message": "Received (Simulated)"}
 
-        msg = MIMEMultipart()
-        msg["From"] = smtp_user
-        msg["To"] = recipient
-        msg["Subject"] = f"New Contact from {clean_name} - DBtech Portfolio"
-        
-        body = f"Name: {clean_name}\nEmail: {clean_email}\n\nMessage:\n{clean_message}"
-        msg.attach(MIMEText(body, "plain"))
-
-        context = ssl.create_default_context()
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls(context=context)
-            server.login(smtp_user, smtp_pass)
-            server.send_message(msg)
-        
         return {"status": "success"}
     except Exception as e:
-        print(f"SMTP Error: {e}")
+        print(f"Resend Error: {e}")
         raise HTTPException(status_code=500, detail="Failed to send email")
 
 @app.post("/subscribe")
@@ -565,38 +605,31 @@ async def subscribe_newsletter(req: NewsletterRequest, request: Request):
     if not check_rate_limit(request.client.host, limit=5, window=3600):
         raise HTTPException(status_code=429, detail="Too many subscription attempts. Please try again later.")
     
-    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER")
-    smtp_pass = os.getenv("SMTP_PASSWORD")
-    recipient = os.getenv("CONTACT_RECIPIENT")
-
     try:
         # Sanitize newsletter inputs strictly
         clean_name = sanitize_text(req.name)
         clean_email = sanitize_text(req.email)
 
-        if not smtp_user or not smtp_pass or not recipient:
+        html_body = f"""
+            <h2>New newsletter subscription</h2>
+            <p>A new person has subscribed to your newsletter!</p>
+            <p><strong>Name:</strong> {clean_name}</p>
+            <p><strong>Email:</strong> {clean_email}</p>
+        """
+
+        sent = send_email(
+            subject=f"New Newsletter Subscription: {clean_name}",
+            html=html_body,
+            reply_to=req.email if is_valid_email(req.email) else None,
+        )
+
+        if not sent:
             print(f"Newsletter subscription (Simulated): Name: {clean_name}, Email: {clean_email}")
             return {"status": "success", "message": "Received (Simulated)"}
 
-        msg = MIMEMultipart()
-        msg["From"] = smtp_user
-        msg["To"] = recipient
-        msg["Subject"] = f"New Newsletter Subscription: {clean_name}"
-        
-        body = f"A new person has subscribed to your newsletter!\n\nName: {clean_name}\nEmail: {clean_email}"
-        msg.attach(MIMEText(body, "plain"))
-
-        context = ssl.create_default_context()
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls(context=context)
-            server.login(smtp_user, smtp_pass)
-            server.send_message(msg)
-        
         return {"status": "success"}
     except Exception as e:
-        print(f"SMTP Error during subscription: {e}")
+        print(f"Resend Error during subscription: {e}")
         raise HTTPException(status_code=500, detail="Failed to process subscription")
 
 # NEW: SEO Endpoints

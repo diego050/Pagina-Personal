@@ -4,16 +4,49 @@ on:
   push:
     branches:
       - main
+  # Allows triggering the deploy by hand from the Actions tab
+  workflow_dispatch:
+
+env:
+  # Must match the Docker Compose project name on the VPS exactly.
+  # Check it with: docker compose ls
+  PROJECT_NAME: diego-portfolio-v1
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Trigger Hostinger Project Update
+      - name: Trigger Hostinger project update
+        env:
+          VM_ID: ${{ secrets.HOSTINGER_VM_ID }}
+          API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
         run: |
-          curl -X POST "https://api.hostinger.com/v1/vps/virtual-machines/${{ secrets.HOSTINGER_VM_ID }}/docker/projects/pagina-personal/update" \
-               -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
-               -H "Content-Type: application/json"
+          set -euo pipefail
+
+          if [ -z "${VM_ID:-}" ] || [ -z "${API_TOKEN:-}" ]; then
+            echo "::error::Missing HOSTINGER_VM_ID or HOSTINGER_API_TOKEN repository secret"
+            exit 1
+          fi
+
+          url="https://api.hostinger.com/v1/vps/virtual-machines/${VM_ID}/docker/projects/${PROJECT_NAME}/update"
+          echo "POST $url"
+
+          # -w appends the status code on its own line so we can inspect it,
+          # instead of the previous silent-success behaviour.
+          response=$(curl -sS -X POST "$url" \
+            -H "Authorization: Bearer ${API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -w $'\n%{http_code}')
+
+          status=$(printf '%s' "$response" | tail -n1)
+          body=$(printf '%s' "$response" | sed '$d')
+
+          echo "HTTP $status"
+          echo "$body"
+
+          if [ "$status" -ge 400 ]; then
+            echo "::error::Hostinger API returned HTTP $status for project '${PROJECT_NAME}'"
+            exit 1
+          fi
+
+          echo "Deploy triggered successfully."

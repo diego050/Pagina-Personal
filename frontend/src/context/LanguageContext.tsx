@@ -92,6 +92,10 @@ export const translations = {
         degreeDetails: '2021 - 2026 | 9no Ciclo - Tercio Superior',
         degreeDescription: 'Primera carrera de administración y negocios digitales en el Perú. Formación centrada en transformación digital, business intelligence, productos digitales, marketing digital, análisis de datos y gestión ágil. Orientada al liderazgo de digitalización empresarial, gestión de startups e innovación organizacional.',
         certificationsTitle: 'Certificaciones Profesionales',
+        certIncludedCourses: 'Certificados incluidos',
+        certDownloadAllZip: 'Descargar todos (.zip)',
+        certPreparingZip: 'Preparando .zip...',
+        certZipError: 'No se pudo generar el .zip. Inténtalo de nuevo.',
 
         // Footer
         footerText: 'Creado con React y FastAPI.',
@@ -201,6 +205,10 @@ export const translations = {
         degreeDetails: '2021 - 2026 | 9th Cycle - Top Third',
         degreeDescription: 'First degree program in Digital Business Administration in Peru. Training focused on digital transformation, business intelligence, digital products, digital marketing, data analytics, and agile management. Oriented towards leadership in business digitalization, startup management, and organizational innovation.',
         certificationsTitle: 'Professional Certifications',
+        certIncludedCourses: 'Included certificates',
+        certDownloadAllZip: 'Download all (.zip)',
+        certPreparingZip: 'Preparing .zip...',
+        certZipError: 'Could not generate the .zip. Please try again.',
 
         // Footer
         footerText: 'Built with React & FastAPI.',
