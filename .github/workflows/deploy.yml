@@ -8,53 +8,59 @@ on:
   workflow_dispatch:
 
 env:
-  # Must match the Docker Compose project name on the VPS exactly.
-  # Check it with: docker compose ls
-  PROJECT_NAME: diego-portfolio-v1
+  PROJECT_DIR: /docker/diego-portfolio-v1
+  COMPOSE_FILE: docker-compose.prod.yml
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Hostinger project update
+      # Deploys over plain SSH on purpose: the Hostinger docker_compose_update
+      # endpoint only rebuilds the containers from whatever is already on disk,
+      # it never pulls new code from GitHub.
+      - name: Deploy over SSH
         env:
-          VM_ID: ${{ secrets.HOSTINGER_VM_ID }}
-          API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           set -euo pipefail
 
-          if [ -z "${VM_ID:-}" ] || [ -z "${API_TOKEN:-}" ]; then
-            echo "::error::Missing HOSTINGER_VM_ID or HOSTINGER_API_TOKEN repository secret"
+          [ -n "${SSH_KEY:-}"  ] || { echo "::error::Missing repository secret VPS_SSH_KEY"; exit 1; }
+          [ -n "${VPS_HOST:-}" ] || { echo "::error::Missing repository secret VPS_HOST"; exit 1; }
+          [ -n "${VPS_USER:-}" ] || { echo "::error::Missing repository secret VPS_USER"; exit 1; }
+
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          # accept-new trusts the host on first connect but still refuses a CHANGED
+          # host key, which is what would signal a man-in-the-middle.
+          ssh -i ~/.ssh/deploy_key \
+              -o StrictHostKeyChecking=accept-new \
+              -o ConnectTimeout=20 \
+              "$VPS_USER@$VPS_HOST" \
+              "set -euo pipefail; \
+               cd '${PROJECT_DIR}'; \
+               echo '--- pulling ---'; \
+               git pull --ff-only origin main; \
+               echo '--- rebuilding ---'; \
+               docker compose -f '${COMPOSE_FILE}' up -d --build; \
+               echo '--- status ---'; \
+               docker compose -f '${COMPOSE_FILE}' ps"
+
+      - name: Remove deploy key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+
+      - name: Smoke check
+        run: |
+          set -euo pipefail
+          # Give the containers a moment to finish coming up
+          sleep 15
+          code=$(curl -sS -o /dev/null -m 30 -w '%{http_code}' https://dbtech.cloud/)
+          echo "https://dbtech.cloud/ -> HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::Site returned HTTP $code after deploy"
             exit 1
           fi
-
-          # Host is developers.hostinger.com/api -- api.hostinger.com does not
-          # resolve (Cloudflare 530/1016). Path has no "/projects/" segment.
-          url="https://developers.hostinger.com/api/vps/v1/virtual-machines/${VM_ID}/docker/${PROJECT_NAME}/update"
-          echo "POST $url"
-
-          # -w appends the status code on its own line so we can inspect it,
-          # instead of the previous silent-success behaviour.
-          response=$(curl -sS -X POST "$url" \
-            -H "Authorization: Bearer ${API_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -w $'\n%{http_code}')
-
-          status=$(printf '%s' "$response" | tail -n1)
-          body=$(printf '%s' "$response" | sed '$d')
-
-          echo "HTTP $status"
-          echo "$body"
-
-          if [ "$status" -ge 400 ]; then
-            case "$status" in
-              401|403) hint="HOSTINGER_API_TOKEN is invalid, expired, or lacks VPS scope" ;;
-              404)     hint="project '${PROJECT_NAME}' not found on VM ${VM_ID} (check: docker compose ls)" ;;
-              5*)      hint="Hostinger API side error -- retry, or check status.hostinger.com" ;;
-              *)       hint="see the response body above" ;;
-            esac
-            echo "::error::Hostinger API returned HTTP $status -- $hint"
-            exit 1
-          fi
-
-          echo "Deploy triggered successfully."
