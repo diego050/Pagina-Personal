@@ -178,3 +178,5 @@ nginx/temp/
 
 # Backups creados por maintenance/upsert_certifications.py
 *.bak-certs
+*.bak-homecopy
+*.bak-mediaurls

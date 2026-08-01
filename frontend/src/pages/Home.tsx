@@ -63,13 +63,18 @@ export default function Home() {
         fetchData();
     }, []);
 
-
+    // The newsletter form lives further down this same page, so the CTA scrolls
+    // to it instead of navigating. scroll-mt on the section clears the fixed navbar.
+    const scrollToNewsletter = () => {
+        document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
     return (
         <div className="relative">
             <SEO
                 title={t('seoHomeTitle')}
                 description={t('seoHomeDesc')}
+                appendSiteName={false}
             />
             {/* Hero Section */}
             <section className="relative min-h-[70vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden py-12 md:py-20">
@@ -88,7 +93,7 @@ export default function Home() {
                                 {t('heroSubtitle')}
                             </span>
                             <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6">
-                                "Diego Bazán"
+                                Diego Bazán
                             </h1>
                             <p
                                 className="text-xl text-zinc-400 max-w-lg mb-4 leading-relaxed border-l-4 border-primary pl-4 text-justify lg:text-left"
@@ -107,14 +112,14 @@ export default function Home() {
                                 >
                                     {t('heroButton')}
                                 </Link>
-                                <a
-                                    href="/cv.pdf"
-                                    download="Diego_Bazan_CV.pdf"
+                                <button
+                                    type="button"
+                                    onClick={scrollToNewsletter}
                                     className="px-8 py-3 bg-transparent border border-zinc-700 text-white font-medium rounded-lg hover:bg-white/5 transition-colors flex items-center gap-2"
                                 >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                    {t('downloadCV')}
-                                </a>
+                                    <Mail className="w-5 h-5" />
+                                    {t('heroSubscribe')}
+                                </button>
                             </div>
                         </motion.div>
 
@@ -161,33 +166,41 @@ export default function Home() {
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="lg:col-span-2"
                     >
-                        <p className="text-zinc-400 text-lg leading-relaxed mb-6 text-justify">
-                            {t('aboutSummary')}
-                        </p>
+                        {/* The summary is authored with blank lines between paragraphs */}
+                        {t('aboutSummary').split(/\n\s*\n/).map((paragraph, idx) => (
+                            <p key={idx} className="text-zinc-400 text-lg leading-relaxed mb-6 text-justify">
+                                {paragraph}
+                            </p>
+                        ))}
                     </motion.div>
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.2 }}
-                        className="lg:col-span-1 flex gap-4"
+                        // grid, not flex: grid-cols-2 forces both boxes to the same width even
+                        // though "2022 — 2026" is much wider than "6". Between lg and xl this
+                        // column is too narrow for the date to fit, so the boxes stack there.
+                        className="lg:col-span-1 grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4"
                     >
-                        <div className="glass-panel p-6 rounded-xl flex-1 text-center border border-white/10 hover:border-primary/50 transition-colors duration-300">
-                            <span className="block text-3xl font-bold text-white mb-1">1+</span>
-                            <span className="text-xs text-zinc-500 uppercase tracking-wide">{t('yearsExp')}</span>
-                        </div>
-                        <div className="glass-panel p-6 rounded-xl flex-1 text-center border border-white/10 hover:border-primary/50 transition-colors duration-300">
-                            <span className="block text-3xl font-bold text-white mb-1">5+</span>
-                            <span className="text-xs text-zinc-500 uppercase tracking-wide">{t('projectsDelivered')}</span>
-                        </div>
+                        {[
+                            { value: '2022 — 2026', label: t('statBuildingLabel'), valueClass: 'text-base sm:text-xl' },
+                            { value: '6', label: t('statCompaniesLabel'), valueClass: 'text-3xl' }
+                        ].map((stat) => (
+                            <div key={stat.label} className="glass-panel px-3 sm:px-4 py-6 rounded-xl text-center border border-white/10 hover:border-primary/50 transition-colors duration-300 flex flex-col justify-center">
+                                <span className={`block font-bold text-white mb-1 whitespace-nowrap ${stat.valueClass}`}>{stat.value}</span>
+                                <span className="text-xs text-zinc-500 uppercase tracking-wide">{stat.label}</span>
+                            </div>
+                        ))}
                     </motion.div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
                     {[
-                        { title: t('cardStrategyTitle'), desc: t('cardStrategyDesc'), iconPath: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" },
-                        { title: t('cardDevTitle'), desc: t('cardDevDesc'), iconPath: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" },
-                        { title: t('cardMarketingTitle'), desc: t('cardMarketingDesc'), iconPath: "M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" }
+                        // Cube, bar chart and trending-up, matching product / data / startup ecosystem
+                        { title: t('cardProductTitle'), desc: t('cardProductDesc'), iconPath: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" },
+                        { title: t('cardDataTitle'), desc: t('cardDataDesc'), iconPath: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
+                        { title: t('cardEcosystemTitle'), desc: t('cardEcosystemDesc'), iconPath: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" }
                     ].map((card, idx) => (
                         <motion.div
                             key={idx}

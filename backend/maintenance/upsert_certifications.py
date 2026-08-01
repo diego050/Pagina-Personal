@@ -4,8 +4,7 @@ Upserts certifications that the admin panel cannot express.
 
 The certifications shown on /sobre-mi live in the `sitecontent` table, and the admin
 editor only exposes title/issuer/year/color/description. Anything with a `href`
-(downloadable PDF) or `files` (multi-certificate program shown as one card with a
-.zip download) has to be written here.
+(downloadable PDF) has to be written here.
 
 Add new entries to CERTIFICATES below and re-run. Safe to run repeatedly: an entry
 whose title already exists is replaced, never duplicated. Only UPDATEs the three
@@ -25,14 +24,6 @@ import shutil
 import sqlite3
 import sys
 
-META_FILES = [
-    ("Marketing Analytics with Meta", "Marketing-Analytics-with-Meta.pdf"),
-    ("Data Analysis with Spreadsheets and SQL", "Data-Analysis-with-Spreadsheets-and-SQL.pdf"),
-    ("Python Data Analytics", "Python-Data-Analytics.pdf"),
-    ("Statistics Foundations", "Statistics-Foundations.pdf"),
-    ("Data Analytics Methods for Marketing", "Data-Analytics-Methods-for-Marketing.pdf"),
-]
-
 # Each entry: the categories it belongs to (ES and EN names as stored in the DB),
 # a stable substring used to find an existing copy, and the ES/EN payloads.
 CERTIFICATES = [
@@ -48,11 +39,7 @@ CERTIFICATES = [
                 "Python, estadística y métodos de medición para optimizar campañas con datos."
             ),
             "color": "cyan",
-            "zipName": "meta-marketing-analytics-certificados",
-            "files": [
-                {"name": n, "href": "/certificates/coursera-marketing/" + f}
-                for n, f in META_FILES
-            ],
+            "href": "/certificates/meta-marketing.pdf",
         },
         "en": {
             "title": "Meta Marketing Analytics (Professional Certificate)",
@@ -64,11 +51,7 @@ CERTIFICATES = [
             ),
             "color": "blue",
             "badge": "Certificate",
-            "zipName": "meta-marketing-analytics-certificates",
-            "files": [
-                {"name": n, "href": "/certificates/coursera-marketing/" + f}
-                for n, f in META_FILES
-            ],
+            "href": "/certificates/meta-marketing.pdf",
         },
     },
     {
@@ -181,7 +164,7 @@ def main():
             for entry in category.get("items", []):
                 for cert in CERTIFICATES:
                     if cert["match"] in (entry.get("title") or ""):
-                        extra = ("files=%d" % len(entry["files"])) if entry.get("files") else entry.get("href", "")
+                        extra = entry.get("href", "")
                         print("    %-26s %-22s %s" % (key, cert["match"], extra))
     connection.close()
 

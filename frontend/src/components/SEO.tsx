@@ -1,8 +1,18 @@
-import { Helmet } from 'react-helmet-async';
+import { useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useLocation } from 'react-router-dom';
 import { getAlternateUrl } from '../utils/routeMappings';
-import { CONFIG, getAbsoluteUrl } from '../config';
+import { CONFIG, getAbsoluteUrl, getBackendUrl } from '../config';
+
+/**
+ * og:image must be an absolute URL that actually serves an image.
+ *
+ * Uploads are served by the backend, which nginx exposes under /api -- resolving them
+ * against the site root instead returns the SPA's index.html, so the preview card ends
+ * up with no image at all. Everything else (files in public/) lives at the site root.
+ */
+const toAbsoluteAsset = (path: string) =>
+    path.startsWith('/static/uploads') ? getBackendUrl(path) : getAbsoluteUrl(path);
 
 interface SEOProps {
     title: string;
@@ -13,11 +23,33 @@ interface SEOProps {
     imageHeight?: number | string;
     imageType?: string;
     type?: string;
+    /** Off for the home page, whose title already carries the full brand. */
+    appendSiteName?: boolean;
 }
 
-export default function SEO({ title, description, image, imageAlt, imageWidth, imageHeight, imageType = 'image/webp', type = 'website' }: SEOProps) {
+/**
+ * Per-page document metadata.
+ *
+ * Uses React 19's built-in hoisting: <title>, <meta> and <link> rendered anywhere in
+ * the tree are moved into <head> automatically. This replaced react-helmet-async,
+ * which only supports React <= 18 and silently rendered nothing under React 19.
+ *
+ * index.html carries a fallback copy of these tags for crawlers that do not run JS
+ * (the social link-preview bots). Those are marked data-default and dropped here on
+ * mount, otherwise Google would read the stale generic copy: for <meta> the first
+ * matching tag in the document wins, and the static ones come first.
+ */
+function useClearDefaultMetaTags() {
+    useEffect(() => {
+        document.head.querySelectorAll('[data-default]').forEach(el => el.remove());
+    }, []);
+}
+
+export default function SEO({ title, description, image, imageAlt, imageWidth, imageHeight, imageType = 'image/webp', type = 'website', appendSiteName = true }: SEOProps) {
     const { language } = useLanguage();
     const location = useLocation();
+
+    useClearDefaultMetaTags();
 
     const currentUrl = getAbsoluteUrl(location.pathname);
     const distinctPath = location.pathname;
@@ -29,7 +61,9 @@ export default function SEO({ title, description, image, imageAlt, imageWidth, i
     const esUrl = getAbsoluteUrl(esPath);
     const enUrl = getAbsoluteUrl(enPath);
 
-    const absoluteImage = image ? getAbsoluteUrl(image) : getAbsoluteUrl(CONFIG.DEFAULT_OG_IMAGE);
+    const absoluteImage = toAbsoluteAsset(image || CONFIG.DEFAULT_OG_IMAGE);
+
+    const fullTitle = appendSiteName ? `${title} — DBtech` : title;
 
     // Structured Data (JSON-LD)
     const structuredData = {
@@ -47,14 +81,14 @@ export default function SEO({ title, description, image, imageAlt, imageWidth, i
     };
 
     return (
-        <Helmet>
-            <title>{title} — DBtech</title>
+        <>
+            <title>{fullTitle}</title>
             <meta name="description" content={description} />
 
             {/* Open Graph / Facebook */}
             <meta property="og:type" content={type} />
             <meta property="og:url" content={currentUrl} />
-            <meta property="og:title" content={title} />
+            <meta property="og:title" content={fullTitle} />
             <meta property="og:description" content={description} />
             <meta property="og:image" content={absoluteImage} />
             <meta property="og:image:secure_url" content={absoluteImage} />
@@ -68,24 +102,23 @@ export default function SEO({ title, description, image, imageAlt, imageWidth, i
             {/* Twitter */}
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:url" content={currentUrl} />
-            <meta name="twitter:title" content={title} />
+            <meta name="twitter:title" content={fullTitle} />
             <meta name="twitter:description" content={description} />
             <meta name="twitter:image" content={absoluteImage} />
             {imageAlt && <meta name="twitter:image:alt" content={imageAlt} />}
 
             {/* Hreflang for SEO */}
             <link rel="canonical" href={currentUrl} />
-            {/* @ts-ignore */}
-            <link rel="alternate" hreflang="es" href={esUrl} />
-            {/* @ts-ignore */}
-            <link rel="alternate" hreflang="en" href={enUrl} />
-            {/* @ts-ignore */}
-            <link rel="alternate" hreflang="x-default" href={esUrl} />
+            <link rel="alternate" hrefLang="es" href={esUrl} />
+            <link rel="alternate" hrefLang="en" href={enUrl} />
+            <link rel="alternate" hrefLang="x-default" href={esUrl} />
 
-            {/* Structured Data */}
-            <script type="application/ld+json">
-                {JSON.stringify(structuredData)}
-            </script>
-        </Helmet>
+            {/* JSON-LD. React 19 only hoists <script> when it is async with a src, so this
+                stays where it is rendered -- which Google explicitly supports. */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+            />
+        </>
     );
 }

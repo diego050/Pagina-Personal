@@ -45,8 +45,9 @@ const NewsletterSection: React.FC = () => {
         }
     };
 
+    // id + scroll-mt: the Home hero CTA scrolls here, clearing the fixed navbar
     return (
-        <section className="py-12 md:py-32 px-4 relative overflow-hidden bg-background">
+        <section id="newsletter" className="scroll-mt-20 py-12 md:py-32 px-4 relative overflow-hidden bg-background">
             {/* Background Image Layer */}
             <div 
                 className="absolute inset-0 z-0 pointer-events-none"

@@ -12,8 +12,10 @@ export const CONFIG = {
     // In development it's usually http://localhost:8000
     BACKEND_URL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000',
     
-    // Default SEO metadata if not provided
-    DEFAULT_OG_IMAGE: '/static/uploads/profile.webp'
+    // Social preview card used when a page supplies no image of its own.
+    // Served from frontend/public, so it matches the fallback in index.html and shows
+    // the same card whether or not the crawler runs JavaScript.
+    DEFAULT_OG_IMAGE: '/og-image.webp'
 };
 
 /**

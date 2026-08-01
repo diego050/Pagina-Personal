@@ -1,25 +1,12 @@
 import { motion } from 'framer-motion';
-import { Download, Mail, Briefcase, GraduationCap, Award, Calendar, Building2, FileText } from 'lucide-react';
+import { Download, Mail, Briefcase, GraduationCap, Award, Calendar, Building2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import SEO from '../components/SEO';
 import ResponsiveImage from '../components/ResponsiveImage';
 import ContactModal from '../components/ContactModal';
-import { downloadFilesAsZip } from '../utils/downloadZip';
 import api from '../api';
-
-const slugify = (text: string) =>
-    text
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '') || 'certificados';
-
-interface CertificationFile {
-    name: string;
-    href: string;
-}
 
 interface CertificationItem {
     title: string;
@@ -30,9 +17,6 @@ interface CertificationItem {
     color: string;
     badge?: string;
     href?: string;
-    /** Multi-certificate programs: listed on the card and downloaded together as a .zip */
-    files?: CertificationFile[];
-    zipName?: string;
 }
 
 interface CertificationCategory {
@@ -129,9 +113,14 @@ export default function AboutMe() {
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                             </div>
 
-                            <p className="text-lg text-zinc-400 mb-6 md:mb-8 leading-relaxed text-justify">
-                                {t('aboutIntro')}
-                            </p>
+                            {/* Authored with blank lines between paragraphs */}
+                            <div className="mb-6 md:mb-8 space-y-4">
+                                {t('aboutIntro').split(/\n\s*\n/).map((paragraph, idx) => (
+                                    <p key={idx} className="text-lg text-zinc-400 leading-relaxed text-justify">
+                                        {paragraph}
+                                    </p>
+                                ))}
+                            </div>
                             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
                                 <a href="/cv.pdf" download="Diego_Bazan_CV.pdf" className="flex items-center gap-2 px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-black font-bold rounded-lg transition-colors">
                                     <Download className="w-5 h-5" />
@@ -255,8 +244,6 @@ export default function AboutMe() {
                                                     color={cert.color}
                                                     href={cert.href}
                                                     badge={cert.badge}
-                                                    files={cert.files}
-                                                    zipName={cert.zipName}
                                                 />
                                             ))}
                                         </div>
@@ -357,14 +344,9 @@ interface CertificationCardProps {
     color: string;
     badge?: string;
     href?: string;
-    files?: CertificationFile[];
-    zipName?: string;
 }
 
-function CertificationCard({ title, issuer, year, description, icon, color, badge, href, files, zipName }: CertificationCardProps) {
-    const { t } = useLanguage();
-    const [zipStatus, setZipStatus] = useState<'idle' | 'loading' | 'error'>('idle');
-
+function CertificationCard({ title, issuer, year, description, icon, color, badge, href }: CertificationCardProps) {
     const colorClasses: any = {
         blue: "bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20",
         green: "bg-green-500/10 text-green-400 group-hover:bg-green-500/20",
@@ -374,42 +356,12 @@ function CertificationCard({ title, issuer, year, description, icon, color, badg
 
     const selectedColor = colorClasses[color] || colorClasses.blue;
 
-    const groupedFiles = files?.filter(f => f?.href) ?? [];
-    const isGrouped = groupedFiles.length > 0;
-
-    const handleDownloadZip = async () => {
-        if (zipStatus === 'loading') return;
-        setZipStatus('loading');
-        try {
-            await downloadFilesAsZip(groupedFiles, zipName || slugify(title));
-            setZipStatus('idle');
-        } catch (err) {
-            console.error('Failed to build certificates zip', err);
-            setZipStatus('error');
-        }
-    };
-
-    // Single certificates are a plain download link. Grouped programs behave the same way
-    // from the outside -- the whole card downloads -- but build a .zip on the fly instead.
-    const isLink = !isGrouped && !!href;
+    // A certificate with a PDF turns the whole card into a download link.
+    const isLink = !!href;
     const Component = isLink ? motion.a : motion.div;
     const props = isLink
         ? { href, target: "_blank", rel: "noopener noreferrer", download: true }
-        : isGrouped
-            ? {
-                onClick: handleDownloadZip,
-                onKeyDown: (e: ReactKeyboardEvent) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleDownloadZip();
-                    }
-                },
-                role: 'button',
-                tabIndex: 0,
-                'aria-label': `${t('certDownloadAllZip')}: ${title}`,
-            }
-            : {};
-    const isClickable = isLink || isGrouped;
+        : {};
 
     return (
         <Component
@@ -418,20 +370,16 @@ function CertificationCard({ title, issuer, year, description, icon, color, badg
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            className={`glass-panel rounded-xl p-6 hover:border-white/20 transition-all group h-full flex flex-col ${isClickable ? 'cursor-pointer' : ''} ${isGrouped ? 'md:col-span-2' : ''}`}
+            className={`glass-panel rounded-xl p-6 hover:border-white/20 transition-all group h-full flex flex-col ${isLink ? 'cursor-pointer' : ''}`}
         >
             <div className="flex justify-between items-start mb-4">
                 <div className={`p-2 rounded-lg transition-colors ${selectedColor}`}>
                     {icon}
                 </div>
                 <div className="flex gap-2 items-center">
-                    {isClickable && (
+                    {isLink && (
                         <div className="p-1.5 rounded-md bg-white/5 text-white/50 group-hover:text-cyan-400 group-hover:bg-cyan-500/10 transition-colors">
-                            {zipStatus === 'loading' ? (
-                                <span className="block w-3.5 h-3.5 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin" />
-                            ) : (
-                                <Download className="w-3.5 h-3.5" />
-                            )}
+                            <Download className="w-3.5 h-3.5" />
                         </div>
                     )}
                     {badge && (
@@ -442,36 +390,7 @@ function CertificationCard({ title, issuer, year, description, icon, color, badg
             </div>
             <h3 className="text-white font-bold mb-2 group-hover:text-cyan-400 transition-colors leading-snug pb-1">{title}</h3>
             <p className="text-xs text-zinc-500 uppercase tracking-wide mb-3">{issuer}</p>
-            <p className={`text-sm text-zinc-400 leading-relaxed ${isGrouped ? '' : 'mt-auto'}`}>{description}</p>
-
-            {isGrouped && (
-                <div className="mt-auto pt-4 border-t border-white/5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-3">
-                        {t('certIncludedCourses')} ({groupedFiles.length})
-                    </p>
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
-                        {groupedFiles.map((file, i) => (
-                            <li key={i} className="flex items-start gap-2 text-sm text-zinc-300">
-                                <FileText className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-zinc-500" aria-hidden="true" />
-                                <a
-                                    href={file.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    // Keep a single-certificate click from also triggering the card's .zip
-                                    onClick={e => e.stopPropagation()}
-                                    className="leading-snug hover:text-cyan-400 transition-colors"
-                                >
-                                    {file.name}
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
-
-                    {zipStatus === 'error' && (
-                        <p className="text-red-400 text-xs mt-3">{t('certZipError')}</p>
-                    )}
-                </div>
-            )}
+            <p className="text-sm text-zinc-400 leading-relaxed mt-auto">{description}</p>
         </Component>
     );
 }

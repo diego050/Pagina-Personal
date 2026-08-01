@@ -4,23 +4,33 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="/Logo.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="DBtech - Portafolio Personal de Diego Bazán. Especialista en Desarrollo de Software y Transformación Digital." />
-    
+
+    <!--
+      Fallback metadata for crawlers that do NOT run JavaScript -- notably the social
+      link-preview bots (Facebook, X, LinkedIn, WhatsApp), which only ever see this file.
+
+      Everything marked data-default is removed by src/components/SEO.tsx as soon as the
+      app mounts, so a JS-capable crawler (Google, Bing) is left with exactly one
+      per-page copy of each tag instead of a stale duplicate. Do not remove the
+      data-default attributes without updating SEO.tsx.
+    -->
+    <title data-default>Diego Bazán | Producto, Datos y Venture Capital</title>
+    <meta data-default name="description" content="Diego Bazán - Construyo productos digitales y explico cómo funciona el venture capital en Perú y LatAm." />
+
     <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://dbtech.cloud/" />
-    <meta property="og:title" content="Diego Bazán | Portafolio" />
-    <meta property="og:description" content="Desarrollador de Software y Especialista en Transformación Digital. Explora mis proyectos tecnológicos." />
-    <meta property="og:image" content="https://dbtech.cloud/og-image.webp" />
+    <meta data-default property="og:type" content="website" />
+    <meta data-default property="og:url" content="https://dbtech.cloud/" />
+    <meta data-default property="og:title" content="Diego Bazán | Producto, Datos y Venture Capital" />
+    <meta data-default property="og:description" content="Diseño, programo y lanzo productos digitales, y cuento sobre startups y venture capital en Perú y LatAm." />
+    <meta data-default property="og:image" content="https://dbtech.cloud/og-image.webp" />
+    <meta data-default property="og:site_name" content="DBtech" />
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://dbtech.cloud/" />
-    <meta property="twitter:title" content="Diego Bazán | Portafolio" />
-    <meta property="twitter:description" content="Desarrollador de Software y Especialista en Transformación Digital. Explora mis proyectos tecnológicos." />
-    <meta property="twitter:image" content="https://dbtech.cloud/og-image.webp" />
-
-    <title>Diego Bazán | Portafolio</title>
+    <meta data-default property="twitter:card" content="summary_large_image" />
+    <meta data-default property="twitter:url" content="https://dbtech.cloud/" />
+    <meta data-default property="twitter:title" content="Diego Bazán | Producto, Datos y Venture Capital" />
+    <meta data-default property="twitter:description" content="Diseño, programo y lanzo productos digitales, y cuento sobre startups y venture capital en Perú y LatAm." />
+    <meta data-default property="twitter:image" content="https://dbtech.cloud/og-image.webp" />
   </head>
   <body>
     <div id="root"></div>
