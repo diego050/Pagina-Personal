@@ -175,3 +175,6 @@ backup/
 scratch/
 nginx/logs/
 nginx/temp/
+
+# Backups creados por maintenance/upsert_certifications.py
+*.bak-certs
