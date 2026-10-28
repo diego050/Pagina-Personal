@@ -8,9 +8,9 @@ export default function ScrollToTop() {
         const typedState = state as { scrollPosition?: number } | null;
 
         if (typedState?.scrollPosition !== undefined) {
-            window.scrollTo(0, typedState.scrollPosition);
+            window.scrollTo({ top: typedState.scrollPosition, left: 0, behavior: "instant" });
         } else {
-            window.scrollTo(0, 0);
+            window.scrollTo({ top: 0, left: 0, behavior: "instant" });
         }
     }, [pathname, state]);
 

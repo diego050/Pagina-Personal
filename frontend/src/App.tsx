@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import type { ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
@@ -28,33 +28,31 @@ function App() {
     <BrowserRouter>
       <ScrollToTop />
       <LanguageProvider>
-        <Suspense fallback={<div className="min-h-screen bg-background flex flex-col items-center justify-center"><div className="w-8 h-8 md:w-12 md:h-12 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div></div>}>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              {/* Spanish Routes (Default) */}
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            {/* Spanish Routes (Default) */}
+            <Route index element={<Home />} />
+            <Route path="sobre-mi" element={<AboutMe />} />
+            <Route path="proyectos" element={<Projects />} />
+            <Route path="project/:slug" element={<ProjectDetail />} />
+            <Route path="blog" element={<Blog />} />
+            <Route path="blog/:slug" element={<Article />} />
+            <Route path="login" element={<Login />} />
+            <Route path="admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+
+            {/* English Routes */}
+            <Route path="en">
               <Route index element={<Home />} />
-              <Route path="sobre-mi" element={<AboutMe />} />
-              <Route path="proyectos" element={<Projects />} />
+              <Route path="about" element={<AboutMe />} />
+              <Route path="projects" element={<Projects />} />
               <Route path="project/:slug" element={<ProjectDetail />} />
               <Route path="blog" element={<Blog />} />
               <Route path="blog/:slug" element={<Article />} />
               <Route path="login" element={<Login />} />
               <Route path="admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-
-              {/* English Routes */}
-              <Route path="en">
-                <Route index element={<Home />} />
-                <Route path="about" element={<AboutMe />} />
-                <Route path="projects" element={<Projects />} />
-                <Route path="project/:slug" element={<ProjectDetail />} />
-                <Route path="blog" element={<Blog />} />
-                <Route path="blog/:slug" element={<Article />} />
-                <Route path="login" element={<Login />} />
-                <Route path="admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-              </Route>
             </Route>
-          </Routes>
-        </Suspense>
+          </Route>
+        </Routes>
       </LanguageProvider>
     </BrowserRouter>
   );

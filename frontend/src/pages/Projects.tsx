@@ -5,6 +5,7 @@ import api from '../api';
 import SEO from '../components/SEO';
 import ResponsiveImage from '../components/ResponsiveImage';
 import { ChevronDown } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface Project {
     id: number;
@@ -19,28 +20,45 @@ interface Project {
     created_at: string;
 }
 
-import { useLanguage } from '../context/LanguageContext';
-
 export default function Projects() {
     const { t, language } = useLanguage();
     const [projects, setProjects] = useState<Project[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
     useEffect(() => {
+        let isMounted = true;
         api.get('/projects')
-            .then(res => setProjects(res.data))
-            .catch(err => console.error(err));
+            .then(res => {
+                if (isMounted) {
+                    setProjects(Array.isArray(res.data) ? res.data : []);
+                }
+            })
+            .catch(err => console.error(err))
+            .finally(() => {
+                if (isMounted) setLoading(false);
+            });
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     const filteredAndSortedProjects = projects
         .filter(project => {
             const q = searchQuery.toLowerCase();
-            return (project.title.toLowerCase().includes(q) ||
-                project.description.toLowerCase().includes(q) ||
-                project.tags.toLowerCase().includes(q) ||
-                (project.title_en && project.title_en.toLowerCase().includes(q)) ||
-                (project.description_en && project.description_en.toLowerCase().includes(q)));
+            const title = (project.title || '').toLowerCase();
+            const desc = (project.description || '').toLowerCase();
+            const tags = (project.tags || '').toLowerCase();
+            const titleEn = (project.title_en || '').toLowerCase();
+            const descEn = (project.description_en || '').toLowerCase();
+            return (
+                title.includes(q) ||
+                desc.includes(q) ||
+                tags.includes(q) ||
+                titleEn.includes(q) ||
+                descEn.includes(q)
+            );
         })
         .sort((a, b) => {
             const dateA = new Date(a.created_at).getTime();
@@ -100,7 +118,20 @@ export default function Projects() {
                 </div>
             </motion.div>
 
-            {projects.length > 0 ? (
+            {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {[0, 1, 2].map((i) => (
+                        <div key={i} className="glass-panel rounded-2xl overflow-hidden h-96 animate-pulse flex flex-col">
+                            <div className="h-48 bg-white/5" />
+                            <div className="p-6 flex flex-col gap-4 flex-grow">
+                                <div className="h-6 bg-white/10 rounded w-3/4" />
+                                <div className="h-4 bg-white/5 rounded w-full" />
+                                <div className="h-4 bg-white/5 rounded w-5/6" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : projects.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {filteredAndSortedProjects.map((project, index) => (
                         <ProjectCard key={project.id} project={project} index={index} />
@@ -129,30 +160,25 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 
     const handleClick = () => {
         if (project.slug) {
-            // Localize navigation
             const basePath = `/project/${project.slug}`;
             const path = language === 'en' ? `/en${basePath}` : basePath;
             navigate(path);
-        } else if (project.link_url.startsWith('/')) {
-            // Check if internal link needs localization
+        } else if (project.link_url?.startsWith('/')) {
             let path = project.link_url;
             if (language === 'en' && !path.startsWith('/en')) {
                 path = `/en${path}`;
             }
             navigate(path);
-        } else {
+        } else if (project.link_url) {
             window.open(project.link_url, '_blank', 'noreferrer');
         }
     };
 
     return (
         <motion.div
-            layout
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.5, delay: (index % 3) * 0.1 }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: Math.min(index * 0.06, 0.3) }}
             onClick={handleClick}
             className="glass-panel rounded-2xl overflow-hidden hover:border-primary/50 transition-colors group flex flex-col h-full cursor-pointer"
         >
@@ -173,7 +199,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
                 </p>
 
                 <div className="mt-auto flex flex-wrap gap-2">
-                    {project.tags.split(',').map(tag => (
+                    {(project.tags || '').split(',').filter(Boolean).map(tag => (
                         <span key={tag} className="px-2 py-1 text-xs font-medium bg-white/5 text-zinc-300 rounded-md">
                             {tag.trim()}
                         </span>
